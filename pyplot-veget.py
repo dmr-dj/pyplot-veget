@@ -81,11 +81,17 @@ pft_color_dict = {
     "BNSg"  : "darkred",
     "BBSg"  : "lightskyblue",
     "C3"    : "bisque",
-    "C4"    : "gold"
+    "C4"    : "gold",
+    "HPFT"  : "gold"
 }
 
 
-plot_type="SEIB"
+# plot_type="SEIB"
+# # SEIB needs a directory as input
+# path_data = "/home/acclimate/ibertrix/out_6k_EGU/out_npppft"
+
+plot_type="reveals"
+file_toPLOT = "/home/acclimate/ibertrix/python-pour-Veget/pollens_onlyTree_TW1_sansCalluna.csv"
 
 if plot_type == "SEIB":
 
@@ -108,55 +114,84 @@ if plot_type == "SEIB":
   mask = pd.read_csv('/home/acclimate/ibertrix/SEIB-EU/params/landmask_'+grid_spacing+'deg.txt',header=None)
   landmask = mask.values[72:228,664:920]
 
+  # Set lat/lon according to grid definition
+
+  data_array = np.zeros((n_lons,n_lats))
+  lons_array = np.zeros((n_lons,n_lats))
+  lats_array = np.zeros((n_lons,n_lats))
+
+  for j in range(n_lons):
+    for i in range(n_lats):
+      lats_array[j,i] = lat_init+i*1./step_per_degree
+      lons_array[j,i] = lon_init+j*1./step_per_degree
+    #endfor
+  #endfor
+
+
+
+  list_fichs=["07", "08", "09", "10", "13", "14", "15", "16"]
+  data_array_nm = np.zeros((n_lons,n_lats,len(list_fichs)))-1.0
+
+
+  for n_um in list_fichs:
+    fich = ""+path_data+n_um+".txt"
+    data = pd.read_csv(fich,header=None)
+    data_array_nm[:,:,list_fichs.index(n_um)] = data.values[:,0:-1].T[:,::-1]
+  #endfor
+
+  data_array = np.ma.masked_less(data_array_nm,0)
+
+  sum_array = np.sum(data_array,axis=-1)
+  for i in range(data_array.shape[-1]):
+    data_array[:,:,i] = data_array[:,:,i] / sum_array
+  #endfor
+
+
+  data_toPlot = np.ma.masked_less(np.ma.where(landmask.T[:,::-1]>0,data_array.argmax(axis=-1),-1),0)
+
+  titleforPlot=path_data
+
+
+elif plot_type == "reveals":
+
+  REVEALS_pfts=["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg","C3","HPFT"]
+
+  n_pft=len(REVEALS_pfts)-1 # -1 to omit the HPFT ...
+  pft_dict=REVEALS_pfts[0:n_pft]
+
+  n_lats = 77
+  n_lons = 117
+
+  step_per_degree=2
+  lat_init=33.5
+  lon_init=-10.5
+  # Set lat/lon according to grid definition
+
+  data_array = np.zeros((n_lons,n_lats))
+  lons_array = np.zeros((n_lons,n_lats))
+  lats_array = np.zeros((n_lons,n_lats))
+
+  for j in range(n_lons):
+    for i in range(n_lats):
+      lats_array[j,i] = lat_init+i*1./step_per_degree
+      lons_array[j,i] = lon_init+j*1./step_per_degree
+    #endfor
+  #endfor
+
+  dataPLOT = pd.read_csv(file_toPLOT)
+  grid_toPLOT = np.zeros((n_lons,n_lats,n_pft)) -1.0
+
+  for indx in range(dataPLOT.shape[0]):
+    indx_lat = find_closest(lats_array[0,:],dataPLOT.LatDD.values[indx])
+    indx_lon = find_closest(lons_array[:,0],dataPLOT.LonDD.values[indx])
+    grid_toPLOT[indx_lon, indx_lat,:] = dataPLOT.values[indx,3:3+n_pft+1]
+  #endfor
+
+  data_toPlot = np.ma.where(grid_toPLOT[:,:,-1] < 100.0,np.ma.masked, grid_toPLOT[:,:,0:n_pft-1].argmax(axis=-1))
+  titleforPlot = file_toPLOT
+
 #endif
 
-# Set lat/lon according to grid definition
-
-data_array = np.zeros((n_lons,n_lats))
-lons_array = np.zeros((n_lons,n_lats))
-lats_array = np.zeros((n_lons,n_lats))
-
-for j in range(n_lons):
-	for i in range(n_lats):
-		lats_array[j,i] = lat_init+i*1./step_per_degree
-		lons_array[j,i] = lon_init+j*1./step_per_degree
-	#endfor
-#endfor
-
-# This one is used for the "SEIB" type
-path_data = "/home/acclimate/ibertrix/out_6k_EGU/out_npppft"
-
-
-list_fichs=["07", "08", "09", "10", "13", "14", "15", "16"]
-data_array_nm = np.zeros((n_lons,n_lats,len(list_fichs)))-1.0
-
-
-for n_um in list_fichs:
-  fich = ""+path_data+n_um+".txt"
-  data = pd.read_csv(fich,header=None)
-  data_array_nm[:,:,list_fichs.index(n_um)] = data.values[:,0:-1].T[:,::-1]
-#endfor
-
-data_array = np.ma.masked_less(data_array_nm,0)
-
-sum_array = np.sum(data_array,axis=-1)
-for i in range(data_array.shape[-1]):
-  data_array[:,:,i] = data_array[:,:,i] / sum_array
-#endfor
-
-
-data_toPlot = np.ma.masked_less(np.ma.where(landmask.T[:,::-1]>0,data_array.argmax(axis=-1),-1),0)
-
-map_dataint(data_toPlot,lons_array,lats_array,path_data, "PFT name", colorlist=[pft_color_dict[pft] for pft in pft_dict], labels=pft_dict)
-
-# llat = 68.5
-#   llat = 37.5
-# llon1 = 12
-# llon2 = 23
-# data_toPlot = np.zeros(data_array.shape)
-# for i in range(data_toPlot.shape[-1]):
-#   data_toPlot[:,:,i] = np.ma.masked_less(np.ma.where(landmask.T[:,::-1]>0,data_array[:,:,i],-1),0)
-# #endfor
-# plot_barsInLON_int(listcolors[0:n_pft-1],llat,llon1,llon2,lats_array,lons_array,data_toPlot,pft_dict,show='True')
+map_dataint(data_toPlot,lons_array,lats_array,titleforPlot,"PFT name", colorlist=[pft_color_dict[pft] for pft in pft_dict], labels=pft_dict)
 
 
