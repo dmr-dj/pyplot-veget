@@ -71,6 +71,50 @@ def map_dataint(var_map, lons, lats, title, legend_label, colorlist,
 
 #enddef
 
+def map_dataflt(var_map, lons, lats, title, legend_label, cmap='viridis',
+                out_file=False, extent = [-14, 50, 33, 72], masklmt=0.0 ):
+
+    """Generates a map of output data from `get_var` function plotted as categories.
+
+    Keyword arguments:
+    var_plot -- a masked array of the data. This must be 2-dimensions (lat, lon).
+    lons -- a masked array of longitude values.
+    lats -- a masked array of latitude values.
+    title -- figure title for the map.
+    legen_label -- label for the map's colorbar.
+    colorlist -- a color list to create a colormap from (if None, use linear viridis segmented)
+    out_file -- optional filepath to save the output image (default False).
+    labels -- a series of discrete labels matching the numbers of colors to be used
+    extent -- limits the extent in lat/lon of the figure (default values are Europe)
+    """
+
+    crs = ccrs.PlateCarree()
+    min_bounds = np.min(var_map)
+    max_bounds = np.max(var_map)
+
+    fig, ax = plt.subplots(figsize=(10,5), subplot_kw=dict(projection=crs))
+    ax.set_title(title)
+    ax.set_global()
+    ax.set_extent(extent)
+    ax.gridlines()
+
+    var_tomap = np.ma.masked_less_equal(var_map,masklmt)
+
+    mesh = ax.pcolormesh(lons, lats, var_tomap, cmap=cmap, transform=crs,
+                          vmin=min_bounds-0.5, vmax=max_bounds+0.5)
+
+    cbar = plt.colorbar(mesh, orientation='vertical', shrink=0.61, label=legend_label)
+
+    ax.gridlines()
+    ax.coastlines()
+    fig.show()
+
+    if out_file:
+        fig.savefig(out_file)
+
+
+#enddef
+
 # Define the correspondance between PFT names and colors
 
 pft_color_dict = {
@@ -159,12 +203,19 @@ elif plot_type == "reveals":
   n_pft=len(REVEALS_pfts)-1 # -1 to omit the HPFT ...
   pft_dict=REVEALS_pfts[0:n_pft]
 
-  n_lats = 77
-  n_lons = 117
+  n_lats = 50
+  n_lons = 100
 
-  step_per_degree=2
+  step_per_degree=1
   lat_init=33.5
-  lon_init=-10.5
+  lon_init=-14.5
+
+#  n_lats = 77
+#  n_lons = 117
+
+#  step_per_degree=2
+#  lat_init=33.5
+#  lon_init=-10.5
   # Set lat/lon according to grid definition
 
   data_array = np.zeros((n_lons,n_lats))
@@ -193,5 +244,6 @@ elif plot_type == "reveals":
 #endif
 
 map_dataint(data_toPlot,lons_array,lats_array,titleforPlot,"PFT name", colorlist=[pft_color_dict[pft] for pft in pft_dict], labels=pft_dict)
+map_dataflt(grid_toPLOT[:,:,5], lons_array,lats_array,titleforPlot,"%"+str(pft_dict[5]), cmap="gist_earth", masklmt=5.0)
 
-
+# The End of All Things (op. cit.)
