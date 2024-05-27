@@ -126,20 +126,25 @@ pft_color_dict = {
     "BBSg"  : "lightskyblue",
     "C3"    : "bisque",
     "C4"    : "gold",
-    "HPFT"  : "gold"
+    "HPFT"  : "gold",
+    "DES"   : "yellow"
 }
 
 
-# plot_type="SEIB"
-# # SEIB needs a directory as input
-# path_data = "/home/acclimate/ibertrix/out_6k_EGU/out_npppft"
+plot_type="SEIB"
+# SEIB needs a directory as input
+# path_data = "/home/acclimate/ibertrix/out_6k_EGU/out_npppft"
+# path_data = "/home/acclimate/ibertrix/out_EWEMBI_egu/out_npppft"
+path_data = "/home/acclimate/ibertrix/out_EWEMBI_BBSg/out_npppft"
 
-plot_type="reveals"
-file_toPLOT = "/home/acclimate/ibertrix/python-pour-Veget/pollens_onlyTree_TW1_sansCalluna.csv"
+# plot_type="reveals"
+# file_toPLOT = "/home/acclimate/ibertrix/python-pour-Veget/pollens_onlyTree_TW1_sansCalluna.csv"
+# file_toPLOT = "/home/acclimate/ibertrix/python-pour-Veget/pollensHerbaceousTW1.csv"
+# file_toPLOT = "/home/acclimate/ibertrix/python-pour-Veget/pollensHumanPFTTW1.csv"
 
 if plot_type == "SEIB":
 
-  SEIB_pfts=["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg","C3","C4"]
+  SEIB_pfts=["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg","C3","C4", "DES"]
 
   n_pft=len(SEIB_pfts)
   pft_dict=SEIB_pfts[0:n_pft]
@@ -190,8 +195,13 @@ if plot_type == "SEIB":
     data_array[:,:,i] = data_array[:,:,i] / sum_array
   #endfor
 
+  seuil_desert = 0.0001
 
-  data_toPlot = np.ma.masked_less(np.ma.where(landmask.T[:,::-1]>0,data_array.argmax(axis=-1),-1),0)
+  data_to_Plot_value = data_array.argmax(axis=-1)
+  data_to_Plot_value = np.ma.where(sum_array < seuil_desert,8,data_to_Plot_value)
+
+
+  data_toPlot = np.ma.masked_less(np.ma.where(landmask.T[:,::-1]>0,data_to_Plot_value,-1),0)
 
   titleforPlot=path_data
 
@@ -200,8 +210,8 @@ elif plot_type == "reveals":
 
   REVEALS_pfts=["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg","C3","HPFT"]
 
-  n_pft=len(REVEALS_pfts)-1 # -1 to omit the HPFT ...
-  pft_dict=REVEALS_pfts[0:n_pft]
+  n_pft=len(REVEALS_pfts)# -1 # -1 to omit the HPFT ...
+  pft_dict=REVEALS_pfts[0:n_pft+1]
 
   n_lats = 50
   n_lons = 100
@@ -230,7 +240,7 @@ elif plot_type == "reveals":
   #endfor
 
   dataPLOT = pd.read_csv(file_toPLOT)
-  grid_toPLOT = np.zeros((n_lons,n_lats,n_pft)) -1.0
+  grid_toPLOT = np.zeros((n_lons,n_lats,n_pft+1)) -1.0
 
   for indx in range(dataPLOT.shape[0]):
     indx_lat = find_closest(lats_array[0,:],dataPLOT.LatDD.values[indx])
@@ -238,12 +248,12 @@ elif plot_type == "reveals":
     grid_toPLOT[indx_lon, indx_lat,:] = dataPLOT.values[indx,3:3+n_pft+1]
   #endfor
 
-  data_toPlot = np.ma.where(grid_toPLOT[:,:,-1] < 100.0,np.ma.masked, grid_toPLOT[:,:,0:n_pft-1].argmax(axis=-1))
+  data_toPlot = np.ma.where(grid_toPLOT[:,:,-1] < 100.0,np.ma.masked, grid_toPLOT[:,:,0:n_pft].argmax(axis=-1))
   titleforPlot = file_toPLOT
 
 #endif
 
 map_dataint(data_toPlot,lons_array,lats_array,titleforPlot,"PFT name", colorlist=[pft_color_dict[pft] for pft in pft_dict], labels=pft_dict)
-map_dataflt(grid_toPLOT[:,:,5], lons_array,lats_array,titleforPlot,"%"+str(pft_dict[5]), cmap="gist_earth", masklmt=5.0)
+# map_dataflt(grid_toPLOT[:,:,5], lons_array,lats_array,titleforPlot,"%"+str(pft_dict[5]), cmap="gist_earth", masklmt=5.0)
 
 # The End of All Things (op. cit.)
