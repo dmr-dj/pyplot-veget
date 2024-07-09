@@ -179,6 +179,7 @@ pft_color_dict = {
 }
 
 
+plot_type="reveals"
 plot_type="SEIB"
 # SEIB needs a directory as input
 # path_data = "/home/acclimate/ibertrix/out_6k_EGU/out_npppft"
@@ -186,6 +187,7 @@ plot_type="SEIB"
 path_data = "/home/acclimate/ibertrix/out_EWEMBI_BBSg/out_npppft"
 path_data = "/home/acclimate/ibertrix/out_6k_BBSg/out_npppft"
 path_data = "/home/acclimate/ibertrix/out_8k5/out_npppft"
+path_data = "/home/acclimate/ibertrix/out_6k_TC/out_npppft"
 
 # plot_type="reveals"
 # file_toPLOT = "/home/acclimate/ibertrix/python-pour-Veget/pollens_onlyTree_TW1_sansCalluna.csv"
@@ -249,6 +251,7 @@ if plot_type == "SEIB":
 
 
   data_to_Plot_value = data_array.argmax(axis=-1)
+  data_to_wrt_valueS = data_array
 
   if SEIB_pfts[-1] == "DES":
 
@@ -270,9 +273,21 @@ if plot_type == "SEIB":
     data_forBars[:,:,i] = np.ma.masked_less(np.ma.where(landmask.T[:,::-1]>0,data_array[:,:,i],-1),0)
   #endfor
 
+  f_to_write = open("SEIB_datafile_writeout.txt", 'w')
+  for i in range(data_array.shape[0]):
+    for j in range(data_array.shape[1]):
+       if not np.ma.is_masked(data_to_wrt_valueS[i,j,0]):
+         f_to_write.write(', '.join([str(lons_array[i,j]), str(lats_array[i,j]), ', '.join(str(x) for x in data_to_wrt_valueS[i,j,:])]))
+         f_to_write.write('\n')
+       # 
+    #endfor
+  #endfor
+  f_to_write.close()
+
 elif plot_type == "reveals":
 
   REVEALS_pfts=["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg","C3","HPFT"]
+  REVEALS_pfts=["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg"]
 
   n_pft=len(REVEALS_pfts)# -1 # -1 to omit the HPFT ...
   pft_dict=REVEALS_pfts[0:n_pft+1]
@@ -317,7 +332,7 @@ elif plot_type == "reveals":
 
 #endif
 
-map_dataint(data_toPlot,lons_array,lats_array,titleforPlot,"PFT name", colorlist=[pft_color_dict[pft] for pft in pft_dict], labels=pft_dict)
+# map_dataint(data_toPlot,lons_array,lats_array,titleforPlot,"PFT name", colorlist=[pft_color_dict[pft] for pft in pft_dict], labels=pft_dict)
 # map_dataflt(grid_toPLOT[:,:,5], lons_array,lats_array,titleforPlot,"%"+str(pft_dict[5]), cmap="gist_earth", masklmt=5.0)
 
 #llat = 61.44
@@ -328,7 +343,7 @@ llat = 68.5
 llon1 = 13
 llon2 = 29
 
-plot_barsInLON_int([pft_color_dict[pft] for pft in pft_dict_noDES],llat,llon1,llon2,lats_array,lons_array, data_forBars,pft_dict_noDES,show='True', title=titleforPlot)
+# plot_barsInLON_int([pft_color_dict[pft] for pft in pft_dict_noDES],llat,llon1,llon2,lats_array,lons_array, data_forBars,pft_dict_noDES,show='True', title=titleforPlot)
 
 
 # The End of All Things (op. cit.)
