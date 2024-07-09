@@ -181,18 +181,13 @@ pft_color_dict = {
 
 plot_type="reveals"
 plot_type="SEIB"
-# SEIB needs a directory as input
-# path_data = "/home/acclimate/ibertrix/out_6k_EGU/out_npppft"
-# path_data = "/home/acclimate/ibertrix/out_EWEMBI_egu/out_npppft"
-path_data = "/home/acclimate/ibertrix/out_EWEMBI_BBSg/out_npppft"
-path_data = "/home/acclimate/ibertrix/out_6k_BBSg/out_npppft"
-path_data = "/home/acclimate/ibertrix/out_8k5/out_npppft"
-path_data = "/home/acclimate/ibertrix/out_6k_TC/out_npppft"
 
-# plot_type="reveals"
+
+# SEIB needs a directory as input
+path_data = "test-data/out_6k_TC/out_npppft"
+
+# REVEALS type need a csv file as input
 # file_toPLOT = "/home/acclimate/ibertrix/python-pour-Veget/pollens_onlyTree_TW1_sansCalluna.csv"
-# file_toPLOT = "/home/acclimate/ibertrix/python-pour-Veget/pollensHerbaceousTW1.csv"
-# file_toPLOT = "/home/acclimate/ibertrix/python-pour-Veget/pollensHumanPFTTW1.csv"
 
 if plot_type == "SEIB":
 
@@ -214,7 +209,7 @@ if plot_type == "SEIB":
   lat_init=33
   lon_init=-14
 
-  mask = pd.read_csv('/home/acclimate/ibertrix/SEIB-EU/params/landmask_'+grid_spacing+'deg.txt',header=None)
+  mask = pd.read_csv('inputdata/SEIB-EU/landmask_'+grid_spacing+'deg.txt',header=None)
   landmask = mask.values[72:228,664:920]
 
   # Set lat/lon according to grid definition
@@ -255,7 +250,7 @@ if plot_type == "SEIB":
 
   if SEIB_pfts[-1] == "DES":
 
-    seuil_desert = 0.03
+    seuil_desert = 0.01
     data_to_Plot_value = np.ma.where(sum_array < seuil_desert,8,data_to_Plot_value)
     pft_dict_noDES = pft_dict[:-1]
 
@@ -332,8 +327,9 @@ elif plot_type == "reveals":
 
 #endif
 
-# map_dataint(data_toPlot,lons_array,lats_array,titleforPlot,"PFT name", colorlist=[pft_color_dict[pft] for pft in pft_dict], labels=pft_dict)
-# map_dataflt(grid_toPLOT[:,:,5], lons_array,lats_array,titleforPlot,"%"+str(pft_dict[5]), cmap="gist_earth", masklmt=5.0)
+map_dataint(data_toPlot,lons_array,lats_array,titleforPlot,"PFT name", colorlist=[pft_color_dict[pft] for pft in pft_dict], labels=pft_dict)
+
+# ~ map_dataflt(grid_toPLOT[:,:,5], lons_array,lats_array,titleforPlot,"%"+str(pft_dict[5]), cmap="gist_earth", masklmt=5.0)
 
 #llat = 61.44
 #llon1 = 24
@@ -343,7 +339,7 @@ llat = 68.5
 llon1 = 13
 llon2 = 29
 
-# plot_barsInLON_int([pft_color_dict[pft] for pft in pft_dict_noDES],llat,llon1,llon2,lats_array,lons_array, data_forBars,pft_dict_noDES,show='True', title=titleforPlot)
+plot_barsInLON_int([pft_color_dict[pft] for pft in pft_dict_noDES],llat,llon1,llon2,lats_array,lons_array, data_forBars,pft_dict_noDES,show='True', title=titleforPlot)
 
 
 # The End of All Things (op. cit.)
