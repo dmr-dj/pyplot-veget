@@ -181,13 +181,16 @@ pft_color_dict = {
 
 plot_type="reveals"
 plot_type="SEIB"
-
+plot_type="MLRout" # former Mathis version
 
 # SEIB needs a directory as input
 path_data = "test-data/out_6k_TC/out_npppft"
 
 # REVEALS type need a csv file as input
 # file_toPLOT = "/home/acclimate/ibertrix/python-pour-Veget/pollens_onlyTree_TW1_sansCalluna.csv"
+
+# MLRout needs a csv file ...
+file_toPLOT = "test-data/MLRF/K8.csv"
 
 if plot_type == "SEIB":
 
@@ -325,11 +328,58 @@ elif plot_type == "reveals":
   data_toPlot = np.ma.where(grid_toPLOT[:,:,-1] < 100.0,np.ma.masked, grid_toPLOT[:,:,0:n_pft].argmax(axis=-1))
   titleforPlot = file_toPLOT
 
+
+elif plot_type == "MLRout":
+
+  grid_spacing="0.25" # 0.25
+
+
+  n_lats = 156
+  n_lons = 256
+
+  step_per_degree=4
+  lat_init=33
+  lon_init=-14
+
+  mask = pd.read_csv('inputdata/SEIB-EU/landmask_'+grid_spacing+'deg.txt',header=None)
+  landmask = mask.values[72:228,664:920]
+
+  # Set lat/lon according to grid definition
+
+  data_array = np.zeros((n_lons,n_lats))
+  lons_array = np.zeros((n_lons,n_lats))
+  lats_array = np.zeros((n_lons,n_lats))
+
+  for j in range(n_lons):
+    for i in range(n_lats):
+      lats_array[j,i] = lat_init+i*1./step_per_degree
+      lons_array[j,i] = lon_init+j*1./step_per_degree
+    #endfor
+  #endfor
+
+
+  data_toPLOT = pd.read_csv(file_toPLOT)
+  lats=data_toPLOT.lat
+  lons=data_toPLOT.lon
+  data_brutto=data_toPLOT.kappa
+
+  for i in range(len(data_toPLOT.lat)):
+    lat_ici=data_toPLOT.lat[i]
+    lat_index=round((lat_ici-lat_init)*step_per_degree)-1
+    lon_ici=data_toPLOT.lon[i]
+    lon_index=round((lon_ici-lon_init)*step_per_degree)-1
+    data_array[lon_index,lat_index] = data_brutto[i]
+  #end for
+  # map_dataint(np.ma.masked_less(np.ma.where(landmask.T[:,::-1]>0,data_array,-1),0),lons_array,lats_array,os.path.basename(file_toPLOT), "PFT name", contours=False, cmap=cmap, labels=pft_dict)
+
 #endif
 
-map_dataint(data_toPlot,lons_array,lats_array,titleforPlot,"PFT name", colorlist=[pft_color_dict[pft] for pft in pft_dict], labels=pft_dict)
+# ~ map_dataint(data_toPlot,lons_array,lats_array,titleforPlot,"PFT name", colorlist=[pft_color_dict[pft] for pft in pft_dict], labels=pft_dict)
 
 # ~ map_dataflt(grid_toPLOT[:,:,5], lons_array,lats_array,titleforPlot,"%"+str(pft_dict[5]), cmap="gist_earth", masklmt=5.0)
+
+map_dataflt(np.ma.masked_less(np.ma.where(landmask.T[:,::-1]>0,data_array,-1),0), lons_array,lats_array,os.path.basename(file_toPLOT),"[1]", cmap="BrBG", masklmt=-5.0)
+
 
 #llat = 61.44
 #llon1 = 24
