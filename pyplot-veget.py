@@ -14,14 +14,14 @@ import argparse
 # Generic definitions
 # ===================
 
-class plottypes :
+class inputtypes :
   SEIB_plt = "SEIB"
   MLRout_plt = "MLRout"
   REVEALS_plt = "reveals"
 
-known_plottypes = [plottypes.SEIB_plt, plottypes.MLRout_plt, plottypes.REVEALS_plt]
+known_inputtypes = [inputtypes.SEIB_plt, inputtypes.MLRout_plt, inputtypes.REVEALS_plt]
 
-grid_choices  = { plottypes.SEIB_plt : "0.25", plottypes.MLRout_plt : "0.25", plottypes.REVEALS_plt : "0.5" }
+grid_choices  = { inputtypes.SEIB_plt : "0.25", inputtypes.MLRout_plt : "0.25", inputtypes.REVEALS_plt : "0.5" }
 
 # Utilities functions ...
 # =======================
@@ -38,9 +38,9 @@ def check_python_version(limit_minor=10) :
 def parse_args() -> argparse.Namespace:
 	
    parser = argparse.ArgumentParser()
-   parser.add_argument("-p", '--plot_type', dest='str_plot_type', type=str, help='Type of plot that is needed [SEIB|reveals|MLRout]', required=True)
+   parser.add_argument("-i", '--input_type', dest='input_type', type=str, nargs=2, action='append', help='Combined input type: <inputtype> <filename>', required=True)
    parser.add_argument("-w", '--write_out', dest='wrt_out_filen', type=str, help='File name to be used for writing the data out', required=False)
-   parser.add_argument("-i", '--input_fil', dest='input_dataset', type=str, help='File name or directory name to be used for input data and specified with the plot_type', required=True)
+   # ~ parser.add_argument("-i", '--input_fil', dest='input_dataset', type=str, help='File name or directory name to be used for input data and specified with the plot_type', required=True)
    parser.add_argument('-d', '--desert', dest='desert_flg', action='store_true')  # on/off flag
    args = parser.parse_args()
    
@@ -256,14 +256,14 @@ def load_grid_latlon_EU (grid_spacing="0.25", lndmask=True):
 def check_input_dataset( input_dataset, plot_type ):
 
   match plot_type :
-      case plottypes.SEIB_plt:
+      case inputtypes.SEIB_plt:
       # SEIB needs a directory as input
       # ~ path_data = "test-data/out_6k_TC/out_npppft"
         if os.path.isdir(os.path.dirname(input_dataset)):
            return input_dataset
         #endif
       # REVEALS type need a csv file as input / MLRout as well
-      case plottypes.REVEALS_plt | plottypes.MLRout_plt :
+      case inputtypes.REVEALS_plt | inputtypes.MLRout_plt :
         if os.path.isfile(input_dataset):
            return input_dataset
         #endif
@@ -277,7 +277,7 @@ def check_input_dataset( input_dataset, plot_type ):
 
 def read_input_dataset( path_dataset, plot_type, pft_dict, data_map ):
 
-  if plot_type == plottypes.SEIB_plt:
+  if plot_type == inputtypes.SEIB_plt:
     
     # the typical output of SEIB used is a list of out_npppft[NN].txt file
     # Here the list of fichs defines the PFT numbers that will match the above list of PFTs
@@ -336,7 +336,7 @@ def read_input_dataset( path_dataset, plot_type, pft_dict, data_map ):
     
     return data_toPlot
 
-  elif plot_type == plottypes.REVEALS_plt:
+  elif plot_type == inputtypes.REVEALS_plt:
 	  
     dataPLOT = pd.read_csv(path_dataset)
     n_pft = len(pft_dict)
@@ -384,10 +384,18 @@ if __name__ == '__main__':
 
   got_args = parse_args()
   
-  plot_type = got_args.str_plot_type
+  print(got_args)
   
-  if not plot_type in known_plottypes:
-     raise RuntimeError("Unknown plot type, known are :", " ; ".join(str(e) for e in known_plottypes))
+  
+  for nb_if in range(len(got_args.input_type)):
+  
+    plot_type = got_args.input_type[nb_if][0]
+    path_dataset = got_args.input_type[nb_if][1]
+    
+  #end_for
+  
+  if not plot_type in known_inputtypes:
+     raise RuntimeError("Unknown plot type, known are :", " ; ".join(str(e) for e in known_inputtypes))
   #fi 
 
 
@@ -396,7 +404,7 @@ if __name__ == '__main__':
 
   pft_list = []
 
-  if plot_type == plottypes.SEIB_plt:
+  if plot_type == inputtypes.SEIB_plt:
 
     # with or without desert
     if got_args.desert_flg :
@@ -407,7 +415,7 @@ if __name__ == '__main__':
     
     pft_list = SEIB_pfts
     
-  elif plot_type == plottypes.REVEALS_plt :
+  elif plot_type == inputtypes.REVEALS_plt :
     REVEALS_pfts=["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg","C3","HPFT"]
     # ~ REVEALS_pfts=["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg"]
 
@@ -422,8 +430,6 @@ if __name__ == '__main__':
 
   # READING DATASET
   # ======================
-      
-  path_dataset = got_args.input_dataset
 
   try:
       writeout_file=got_args.wrt_out_filen # is there a file to writeout?
