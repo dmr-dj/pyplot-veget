@@ -18,11 +18,12 @@ class inputtypes :
   SEIB_plt = "SEIB"
   MLRout_plt = "MLRout"
   REVEALS_plt = "reveals"
+  ORCHIDEE_plt = "ORCHIDEE"
 #endclass
 
-known_inputtypes = [inputtypes.SEIB_plt, inputtypes.MLRout_plt, inputtypes.REVEALS_plt]
+known_inputtypes = [inputtypes.SEIB_plt, inputtypes.MLRout_plt, inputtypes.REVEALS_plt, inputtypes.ORCHIDEE_plt]
 
-grid_choices  = { inputtypes.SEIB_plt : "0.25", inputtypes.MLRout_plt : "0.25", inputtypes.REVEALS_plt : "0.5" }
+grid_choices  = { inputtypes.SEIB_plt : "0.25", inputtypes.MLRout_plt : "0.25", inputtypes.REVEALS_plt : "0.5", inputtypes.ORCHIDEE_plt : "0.5" }
 
 class data_geoEurope :
     def __init__(self, geodata, lons, lats, path, pftdict, inputtype):
@@ -38,6 +39,52 @@ class data_geoEurope :
 	#enddef		
 
 #endclass
+
+
+# Define the correspondance between PFT names and colors
+
+pft_color_SEIB = {
+    "TeNEg" : "yellowgreen",
+    "Med."  : "olive",
+    "TeBSg" : "lime",
+    "BNEg"  : "darkgreen",
+    "BNSg"  : "darkred",
+    "BBSg"  : "lightskyblue",
+    "C3"    : "bisque",
+    "C4"    : "gold",
+    "HPFT"  : "gold",
+    "DES"   : "yellow"
+}
+
+pft_color_ORCHIDEE = {
+    "solnu" : "black",
+    "TrEg"  : "red",
+    "TrSg"  : "darkred",
+    "TeNEg" : "yellowgreen",
+    "TeBEg" : "olive",
+    "TeBSg" : "lime",
+    "BNEg"  : "darkgreen",
+    "BBSg"  : "lightskyblue",
+    "BNSg"  : "darkred",
+    "TeC3"  : "bisque",
+    "TrC3"  : "gold",
+    "BC4"   : "orange"
+}
+
+pft_color_MLRout = {
+    "TeNEg" : "yellowgreen",
+    "Med."  : "olive",
+    "TeBSg" : "lime",
+    "BNEg"  : "darkgreen",
+    "BNSg"  : "darkred",
+    "BBSg"  : "lightskyblue",
+    "C3"    : "bisque",
+    "C4"    : "gold",
+    "HPFT"  : "gold"
+}
+
+
+PFT_color_choices = {inputtypes.SEIB_plt : pft_color_SEIB, inputtypes.ORCHIDEE_plt : pft_color_ORCHIDEE, inputtypes.MLRout_plt : pft_color_MLRout, inputtypes.REVEALS_plt : pft_color_SEIB}
 
 # Utilities functions ...
 # =======================
@@ -279,7 +326,7 @@ def check_input_dataset( input_dataset, plot_type ):
            return input_dataset
         #endif
       # REVEALS type need a csv file as input / MLRout as well
-      case inputtypes.REVEALS_plt | inputtypes.MLRout_plt :
+      case inputtypes.REVEALS_plt | inputtypes.MLRout_plt | inputtypes.ORCHIDEE_plt :
         if os.path.isfile(input_dataset):
            return input_dataset
         #endif
@@ -397,25 +444,6 @@ def read_input_dataset( path_dataset, plot_type, pft_dict, data_map ):
   #endif
 
 #enddef read_input_dataset
-
-
-
-# Define the correspondance between PFT names and colors
-
-pft_color_dict = {
-    "TeNEg" : "yellowgreen",
-    "Med."  : "olive",
-    "TeBSg" : "lime",
-    "BNEg"  : "darkgreen",
-    "BNSg"  : "darkred",
-    "BBSg"  : "lightskyblue",
-    "C3"    : "bisque",
-    "C4"    : "gold",
-    "HPFT"  : "gold",
-    "DES"   : "yellow"
-}
-
-
 
 # ----- MAIN PROGRAM -----
 
@@ -535,6 +563,7 @@ if __name__ == '__main__':
   for nb_data in range(len(full_data_list)):
 	  	  
     to_plot = full_data_list[nb_data]
+    pft_color_dict = PFT_color_choices[to_plot.inputtype]
     if to_plot.inputtype == inputtypes.MLRout_plt:
       map_dataflt(np.ma.masked_less(np.ma.where(to_plot.lndmsk.T[:,::-1]>0,to_plot.geodata,-1),0), to_plot.lons,to_plot.lats,os.path.basename(to_plot.path),"[1]", cmap="BrBG", masklmt=-5.0)
     else:		
