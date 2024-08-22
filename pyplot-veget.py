@@ -18,10 +18,21 @@ class inputtypes :
   SEIB_plt = "SEIB"
   MLRout_plt = "MLRout"
   REVEALS_plt = "reveals"
+#endclass
 
 known_inputtypes = [inputtypes.SEIB_plt, inputtypes.MLRout_plt, inputtypes.REVEALS_plt]
 
 grid_choices  = { inputtypes.SEIB_plt : "0.25", inputtypes.MLRout_plt : "0.25", inputtypes.REVEALS_plt : "0.5" }
+
+class data_geoEurope :
+    def __init__(self, geodata, lons, lats, path, pftdict, inputtype):
+        self.geodata = geodata
+        self.lons = lons
+        self.lats = lats
+        self.path = path
+        self.pftdict = pftdict
+        self.inputtype = inputtype
+#endclass
 
 # Utilities functions ...
 # =======================
@@ -384,77 +395,82 @@ if __name__ == '__main__':
 
   got_args = parse_args()
   
-  print(got_args)
   
+  # Looping over the series of inputs (in the form of input_type, path_dataset)
+  
+  full_data_list = []
   
   for nb_if in range(len(got_args.input_type)):
   
     plot_type = got_args.input_type[nb_if][0]
     path_dataset = got_args.input_type[nb_if][1]
     
-  #end_for
+    if not plot_type in known_inputtypes:
+       raise RuntimeError("Unknown plot type, known are :", " ; ".join(str(e) for e in known_inputtypes))
+    #fi 
+
   
-  if not plot_type in known_inputtypes:
-     raise RuntimeError("Unknown plot type, known are :", " ; ".join(str(e) for e in known_inputtypes))
-  #fi 
+    # PFTs definition ....
+    # ====================
+
+    pft_list = []
+
+    if plot_type == inputtypes.SEIB_plt:
+
+      # with or without desert
+      if got_args.desert_flg :
+        SEIB_pfts=["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg","C3","C4", "DES"]
+      else:
+        SEIB_pfts=["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg","C3","C4"]
+      #endif
+    
+      pft_list = SEIB_pfts
+    
+    elif plot_type == inputtypes.REVEALS_plt :
+      REVEALS_pfts=["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg","C3","HPFT"]
+      # ~ REVEALS_pfts=["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg"]
+
+      pft_list = REVEALS_pfts
+
+      n_pft=len(REVEALS_pfts)
+      pft_dict=REVEALS_pfts[0:n_pft]
 
 
-  # PFTs definition ....
-  # ====================
+    n_pft=len(pft_list)
+    pft_dict=pft_list[0:n_pft] # should be removed ....
+ 
 
-  pft_list = []
+    # READING DATASET
+    # ======================
 
-  if plot_type == inputtypes.SEIB_plt:
+    try:
+        writeout_file=got_args.wrt_out_filen # is there a file to writeout?
+    except:
+	    pass
+    #endtry
 
-    # with or without desert
-    if got_args.desert_flg :
-      SEIB_pfts=["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg","C3","C4", "DES"]
-    else:
-      SEIB_pfts=["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg","C3","C4"]
+    # Loading grid depending on plot_type
+    n_lats, n_lons, lats_array, lons_array, lat_init, lon_init, step_per_degree, landmask = load_grid_latlon_EU(grid_spacing=grid_choices[plot_type])
+  
+    data_array = np.zeros((n_lons,n_lats)) # Base format for the whole thing: a lat,lon placeholder
+
+  
+    # Check the input data format, depending on plot type
+    print(path_dataset, check_input_dataset( path_dataset, plot_type ))
+
+    if check_input_dataset( path_dataset, plot_type ) == path_dataset:
+      print("Reading input dataset ...")
+	  
+	    # read_input_dataset returns:
+	    # the max npp pft if SEIB is chosen
+	  
+      data_toPlot = read_input_dataset( path_dataset, plot_type, pft_list, data_array ) 
     #endif
     
-    pft_list = SEIB_pfts
+    # Add the data thus obtained in the data list containing all datasets ...
+    full_data_list.append(data_geoEurope(data_toPlot, lons_array, lats_array, path_dataset, pft_list, plot_type))
     
-  elif plot_type == inputtypes.REVEALS_plt :
-    REVEALS_pfts=["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg","C3","HPFT"]
-    # ~ REVEALS_pfts=["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg"]
-
-    pft_list = REVEALS_pfts
-
-    n_pft=len(REVEALS_pfts)
-    pft_dict=REVEALS_pfts[0:n_pft]
-
-
-  n_pft=len(pft_list)
-  pft_dict=pft_list[0:n_pft] # should be removed ....
-
-  # READING DATASET
-  # ======================
-
-  try:
-      writeout_file=got_args.wrt_out_filen # is there a file to writeout?
-  except:
-	  pass
-  #endtry
-
-  # Loading grid depending on plot_type
-  n_lats, n_lons, lats_array, lons_array, lat_init, lon_init, step_per_degree, landmask = load_grid_latlon_EU(grid_spacing=grid_choices[plot_type])
-  
-  
-  data_array = np.zeros((n_lons,n_lats)) # Base format for the whole thing: a lat,lon placeholder
-
-  
-  # Check the input data format, depending on plot type
-  print(path_dataset, check_input_dataset( path_dataset, plot_type ))
-
-  if check_input_dataset( path_dataset, plot_type ) == path_dataset:
-	  print("Reading input dataset ...")
-	  
-	  # read_input_dataset returns:
-	  # the max npp pft if SEIB is chosen
-	  
-	  data_toPlot = read_input_dataset( path_dataset, plot_type, pft_list, data_array ) 
-
+  #end_for
 
   if plot_type == "SEIB":
 
@@ -537,8 +553,18 @@ if __name__ == '__main__':
   #endif
 
 
-  map_dataint(data_toPlot,lons_array,lats_array,path_dataset,"PFT name", colorlist=[pft_color_dict[pft] for pft in pft_dict], labels=pft_dict)
 
+  # map_dataint needs: 2D array (ints) to be plotted ; lons and lats for the grid ; path to the dataset ; pft_dict relating to the type
+
+
+  # ~ map_dataint(data_toPlot,lons_array,lats_array,path_dataset,"PFT name", colorlist=[pft_color_dict[pft] for pft in pft_dict], labels=pft_dict)
+  # ~ data_geoEurope :
+    # ~ def __init__(self, geodata, lons, lats, path, pftdict, inputtype)
+  for nb_data in range(len(full_data_list)):
+    to_plot = full_data_list[nb_data]
+    map_dataint(to_plot.geodata,to_plot.lons,to_plot.lats,to_plot.path,"PFT name", colorlist=[pft_color_dict[pft] for pft in to_plot.pftdict], labels=to_plot.pftdict)
+  # endfor
+  
   # ~ map_dataflt(grid_toPLOT[:,:,5], lons_array,lats_array,titleforPlot,"%"+str(pft_dict[5]), cmap="gist_earth", masklmt=5.0)
 
   # ~ map_dataflt(np.ma.masked_less(np.ma.where(landmask.T[:,::-1]>0,data_array,-1),0), lons_array,lats_array,os.path.basename(file_toPLOT),"[1]", cmap="BrBG", masklmt=-5.0)
