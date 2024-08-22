@@ -1,10 +1,8 @@
 # pyplot-veget
 A series of python script to plot vegetation related fields
 
-# Test cases so far:
+# Full test case:
 
-python -i pyplot-veget.py -p reveals -i  test-data/pollensHumanPFTTW14.csv
-
-python -i pyplot-veget.py -p SEIB -i test-data/out_6k_TC/out_npppft 
+python -i pyplot-veget.py -i SEIB test-data/out_6k_TC/out_npppft -i MLRout test-data/MLRF/K8.csv -i reveals test-data/pollensHumanPFTTW14.csv
 
 (previous one can be used with -d as well)
