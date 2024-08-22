@@ -363,6 +363,32 @@ def read_input_dataset( path_dataset, plot_type, pft_dict, data_map ):
     data_toPlot = np.ma.where(grid_toPLOT[:,:,-1] < 100.0,np.ma.masked, grid_toPLOT[:,:,0:n_pft].argmax(axis=-1))
 	  	  
     return data_toPlot
+  
+  elif plot_type == inputtypes.MLRout_plt:
+	  
+    data_array = np.zeros(data_map.shape)
+    data_toPLOT = pd.read_csv(path_dataset)
+
+    # Assuming that lat and lon are called as such
+    lats=data_toPLOT.lat
+    lons=data_toPLOT.lon
+    
+    # Following line depends on the data column name, needs to be updated
+    data_brutto=data_toPLOT.kappa # this is a one dimensional array of lat, lon points
+
+    for i in range(len(data_toPLOT.lat)):
+      lat_ici=data_toPLOT.lat[i]
+      lat_index=round((lat_ici-lat_init)*step_per_degree)-1
+      lon_ici=data_toPLOT.lon[i]
+      lon_index=round((lon_ici-lon_init)*step_per_degree)-1
+      data_array[lon_index,lat_index] = data_brutto[i]
+    #end for
+
+    # case of MLRout what has been created is data_array(lon, lat)
+    # Can be plotted with a simple map_dataflt below  
+  
+    return data_array
+  
   #endif
 
 #enddef read_input_dataset
@@ -530,26 +556,28 @@ if __name__ == '__main__':
 
   elif plot_type == "MLRout":
 
-    data_array = np.zeros((n_lons,n_lats))
-    data_toPLOT = pd.read_csv(file_toPLOT)
+    # ~ data_array = np.zeros((n_lons,n_lats))
+    # ~ data_toPLOT = pd.read_csv(file_toPLOT)
 
-    # Assuming that lat and lon are called as such
-    lats=data_toPLOT.lat
-    lons=data_toPLOT.lon
+    # ~ # Assuming that lat and lon are called as such
+    # ~ lats=data_toPLOT.lat
+    # ~ lons=data_toPLOT.lon
     
-    # Following line depends on the data column name, needs to be updated
-    data_brutto=data_toPLOT.kappa # this is a one dimensional array of lat, lon points
+    # ~ # Following line depends on the data column name, needs to be updated
+    # ~ data_brutto=data_toPLOT.kappa # this is a one dimensional array of lat, lon points
 
-    for i in range(len(data_toPLOT.lat)):
-      lat_ici=data_toPLOT.lat[i]
-      lat_index=round((lat_ici-lat_init)*step_per_degree)-1
-      lon_ici=data_toPLOT.lon[i]
-      lon_index=round((lon_ici-lon_init)*step_per_degree)-1
-      data_array[lon_index,lat_index] = data_brutto[i]
-    #end for
+    # ~ for i in range(len(data_toPLOT.lat)):
+      # ~ lat_ici=data_toPLOT.lat[i]
+      # ~ lat_index=round((lat_ici-lat_init)*step_per_degree)-1
+      # ~ lon_ici=data_toPLOT.lon[i]
+      # ~ lon_index=round((lon_ici-lon_init)*step_per_degree)-1
+      # ~ data_array[lon_index,lat_index] = data_brutto[i]
+    # ~ #end for
 
     # case of MLRout what has been created is data_array(lon, lat)
     # Can be plotted with a simple map_dataflt below
+    
+     pass
   #endif
 
 
@@ -561,8 +589,14 @@ if __name__ == '__main__':
   # ~ data_geoEurope :
     # ~ def __init__(self, geodata, lons, lats, path, pftdict, inputtype)
   for nb_data in range(len(full_data_list)):
+	  	  
     to_plot = full_data_list[nb_data]
-    map_dataint(to_plot.geodata,to_plot.lons,to_plot.lats,to_plot.path,"PFT name", colorlist=[pft_color_dict[pft] for pft in to_plot.pftdict], labels=to_plot.pftdict)
+    if to_plot.inputtype == inputtypes.MLRout_plt:
+      map_dataflt(np.ma.masked_less(np.ma.where(landmask.T[:,::-1]>0,to_plot.geodata,-1),0), to_plot.lons,to_plot.lats,os.path.basename(to_plot.path),"[1]", cmap="BrBG", masklmt=-5.0)
+    else:		
+      map_dataint(to_plot.geodata,to_plot.lons,to_plot.lats,to_plot.path,"PFT name", colorlist=[pft_color_dict[pft] for pft in to_plot.pftdict], labels=to_plot.pftdict)
+    #endif
+    
   # endfor
   
   # ~ map_dataflt(grid_toPLOT[:,:,5], lons_array,lats_array,titleforPlot,"%"+str(pft_dict[5]), cmap="gist_earth", masklmt=5.0)
