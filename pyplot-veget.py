@@ -524,78 +524,14 @@ if __name__ == '__main__':
 
     pass
 
-
-  elif plot_type == "reveals":
-
-    # ~ REVEALS_pfts=["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg","C3","HPFT"]
-    # ~ REVEALS_pfts=["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg"]
-
-    # ~ n_pft=len(REVEALS_pfts)# -1 # -1 to omit the HPFT ...
-    # ~ pft_dict=REVEALS_pfts[0:n_pft+1]
-
-    # ~ n_lats = 50
-    # ~ n_lons = 100
-
-    # ~ step_per_degree=1
-    # ~ lat_init=33.5
-    # ~ lon_init=-14.5
-
-  # ~ #  n_lats = 77
-  # ~ #  n_lons = 117
-
-  # ~ #  step_per_degree=2
-  # ~ #  lat_init=33.5
-  # ~ #  lon_init=-10.5
-  # ~ # Set lat/lon according to grid definition
-
-    # ~ data_array = np.zeros((n_lons,n_lats))
-    # ~ lons_array = np.zeros((n_lons,n_lats))
-    # ~ lats_array = np.zeros((n_lons,n_lats))
-
-    # ~ for j in range(n_lons):
-      # ~ for i in range(n_lats):
-        # ~ lats_array[j,i] = lat_init+i*1./step_per_degree
-        # ~ lons_array[j,i] = lon_init+j*1./step_per_degree
-      # ~ #endfor
-    # ~ #endfor
-
-    pass
-
-
-  elif plot_type == "MLRout":
-
-    # ~ data_array = np.zeros((n_lons,n_lats))
-    # ~ data_toPLOT = pd.read_csv(file_toPLOT)
-
-    # ~ # Assuming that lat and lon are called as such
-    # ~ lats=data_toPLOT.lat
-    # ~ lons=data_toPLOT.lon
-    
-    # ~ # Following line depends on the data column name, needs to be updated
-    # ~ data_brutto=data_toPLOT.kappa # this is a one dimensional array of lat, lon points
-
-    # ~ for i in range(len(data_toPLOT.lat)):
-      # ~ lat_ici=data_toPLOT.lat[i]
-      # ~ lat_index=round((lat_ici-lat_init)*step_per_degree)-1
-      # ~ lon_ici=data_toPLOT.lon[i]
-      # ~ lon_index=round((lon_ici-lon_init)*step_per_degree)-1
-      # ~ data_array[lon_index,lat_index] = data_brutto[i]
-    # ~ #end for
-
-    # case of MLRout what has been created is data_array(lon, lat)
-    # Can be plotted with a simple map_dataflt below
-    
-     pass
   #endif
-
-
-
+  
   # map_dataint needs: 2D array (ints) to be plotted ; lons and lats for the grid ; path to the dataset ; pft_dict relating to the type
-
 
   # ~ map_dataint(data_toPlot,lons_array,lats_array,path_dataset,"PFT name", colorlist=[pft_color_dict[pft] for pft in pft_dict], labels=pft_dict)
   # ~ data_geoEurope :
     # ~ def __init__(self, geodata, lons, lats, path, pftdict, inputtype)
+
   for nb_data in range(len(full_data_list)):
 	  	  
     to_plot = full_data_list[nb_data]
