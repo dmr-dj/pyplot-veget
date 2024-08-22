@@ -23,7 +23,7 @@ class inputtypes :
 
 known_inputtypes = [inputtypes.SEIB_plt, inputtypes.MLRout_plt, inputtypes.REVEALS_plt, inputtypes.ORCHIDEE_plt]
 
-grid_choices  = { inputtypes.SEIB_plt : "0.25", inputtypes.MLRout_plt : "0.25", inputtypes.REVEALS_plt : "0.5", inputtypes.ORCHIDEE_plt : "0.5" }
+grid_choices  = { inputtypes.SEIB_plt : "0.25", inputtypes.MLRout_plt : "0.25", inputtypes.REVEALS_plt : "0.5", inputtypes.ORCHIDEE_plt : "0.25" }
 
 class data_geoEurope :
     def __init__(self, geodata, lons, lats, path, pftdict, inputtype):
@@ -85,6 +85,14 @@ pft_color_MLRout = {
 
 
 PFT_color_choices = {inputtypes.SEIB_plt : pft_color_SEIB, inputtypes.ORCHIDEE_plt : pft_color_ORCHIDEE, inputtypes.MLRout_plt : pft_color_MLRout, inputtypes.REVEALS_plt : pft_color_SEIB}
+
+
+PFT_list_SEIB = ["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg","C3","C4"]
+PFT_list_reveals = ["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg","C3","HPFT"]
+PFT_list_ORCHIDEE = ["solnu", "TrEg","TrSg", "TeNEg", "TeBEg", "TeBSg", "BNEg", "BBSg", "BNSg", "TeC3", "TrC3","BC4"]
+PFT_list_MLRout = None
+
+PFT_list_choices = {inputtypes.SEIB_plt : PFT_list_SEIB, inputtypes.ORCHIDEE_plt : PFT_list_ORCHIDEE, inputtypes.MLRout_plt : PFT_list_MLRout, inputtypes.REVEALS_plt : PFT_list_reveals}
 
 # Utilities functions ...
 # =======================
@@ -441,6 +449,22 @@ def read_input_dataset( path_dataset, plot_type, pft_dict, data_map ):
   
     return data_array
   
+  elif plot_type == inputtypes.ORCHIDEE_plt:
+	  
+    dst = n4.Dataset(path_dataset)
+    n_pft = len(dst.variables['veget'][:]) # this variable contains an axis with values 0:12, so 13 PFTs
+    vegfrac = dst.variables['vegetfrac'] # Vegetation Fraction, time, nvegtyp, lat,lon
+    vegfrc = vegfrac[-1,:,:,:]  # Taking last time step
+    print(" :: ", len(pft_list))
+    remap_fracveg = np.zeros(data_map.shape+(n_pft,))
+    for i in range(n_pft):
+      remap_fracveg[:,:,i] = vegfrc[i,::-1,:].T
+    #endfor
+
+    var_to_PLOT = np.ma.masked_less_equal(remap_fracveg.argmax(axis=-1),0)
+
+    return var_to_PLOT
+  
   #endif
 
 #enddef read_input_dataset
@@ -472,32 +496,36 @@ if __name__ == '__main__':
     # PFTs definition ....
     # ====================
 
-    pft_list = []
+    # ~ pft_list = []
 
-    if plot_type == inputtypes.SEIB_plt:
+    # ~ if plot_type == inputtypes.SEIB_plt:
 
-      # with or without desert
-      if got_args.desert_flg :
-        SEIB_pfts=["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg","C3","C4", "DES"]
-      else:
-        SEIB_pfts=["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg","C3","C4"]
-      #endif
+      # ~ # with or without desert
+      # ~ if got_args.desert_flg :
+        # ~ SEIB_pfts=["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg","C3","C4", "DES"]
+      # ~ else:
+        # ~ SEIB_pfts=["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg","C3","C4"]
+      # ~ #endif
     
-      pft_list = SEIB_pfts
+      # ~ pft_list = PFT_list_choices[plot_type]
     
-    elif plot_type == inputtypes.REVEALS_plt :
-      REVEALS_pfts=["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg","C3","HPFT"]
+    # ~ elif plot_type == inputtypes.REVEALS_plt :
+      # ~ REVEALS_pfts=["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg","C3","HPFT"]
       # ~ REVEALS_pfts=["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg"]
 
-      pft_list = REVEALS_pfts
+      # ~ pft_list = REVEALS_pfts
 
-      n_pft=len(REVEALS_pfts)
-      pft_dict=REVEALS_pfts[0:n_pft]
+      # ~ n_pft=len(REVEALS_pfts)
+      # ~ pft_dict=REVEALS_pfts[0:n_pft]
 
-
-    n_pft=len(pft_list)
-    pft_dict=pft_list[0:n_pft] # should be removed ....
- 
+    pft_list = PFT_list_choices[plot_type]
+    if got_args.desert_flg :
+      pft_list.append("DES")
+    #endif
+    if not pft_list is None:
+      n_pft=len(pft_list)    
+      pft_dict=pft_list[0:n_pft] # should be removed ....
+    #endif
 
     # READING DATASET
     # ======================
