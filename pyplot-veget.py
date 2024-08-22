@@ -32,6 +32,11 @@ class data_geoEurope :
         self.path = path
         self.pftdict = pftdict
         self.inputtype = inputtype
+    #enddef
+    def add_lndmsk(self, lndmsk):
+        self.lndmsk=lndmsk
+	#enddef		
+
 #endclass
 
 # Utilities functions ...
@@ -495,6 +500,9 @@ if __name__ == '__main__':
     
     # Add the data thus obtained in the data list containing all datasets ...
     full_data_list.append(data_geoEurope(data_toPlot, lons_array, lats_array, path_dataset, pft_list, plot_type))
+    if not landmask is None:
+       full_data_list[-1].add_lndmsk(landmask)
+    #endif
     
   #end_for
 
@@ -592,7 +600,7 @@ if __name__ == '__main__':
 	  	  
     to_plot = full_data_list[nb_data]
     if to_plot.inputtype == inputtypes.MLRout_plt:
-      map_dataflt(np.ma.masked_less(np.ma.where(landmask.T[:,::-1]>0,to_plot.geodata,-1),0), to_plot.lons,to_plot.lats,os.path.basename(to_plot.path),"[1]", cmap="BrBG", masklmt=-5.0)
+      map_dataflt(np.ma.masked_less(np.ma.where(to_plot.lndmsk.T[:,::-1]>0,to_plot.geodata,-1),0), to_plot.lons,to_plot.lats,os.path.basename(to_plot.path),"[1]", cmap="BrBG", masklmt=-5.0)
     else:		
       map_dataint(to_plot.geodata,to_plot.lons,to_plot.lats,to_plot.path,"PFT name", colorlist=[pft_color_dict[pft] for pft in to_plot.pftdict], labels=to_plot.pftdict)
     #endif
