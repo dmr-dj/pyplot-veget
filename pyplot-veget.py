@@ -94,6 +94,13 @@ PFT_list_MLRout = None
 
 PFT_list_choices = {inputtypes.SEIB_plt : PFT_list_SEIB, inputtypes.ORCHIDEE_plt : PFT_list_ORCHIDEE, inputtypes.MLRout_plt : PFT_list_MLRout, inputtypes.REVEALS_plt : PFT_list_reveals}
 
+
+PFT_weights_SEIB_reveals = np.zeros((len(PFT_list_SEIB),len(PFT_list_reveals)),dtype=int)
+
+PFT_weights = pd.read_csv("inputdata/poids_PFTs_reveals_SEIB.csv")
+
+PFT_weights_SEIB_reveals = PFT_weights.values[:,1:] # 1: to suppress the labelling column ...
+
 # Utilities functions ...
 # =======================
 
@@ -469,6 +476,54 @@ def read_input_dataset( path_dataset, plot_type, pft_dict, data_map ):
 
 #enddef read_input_dataset
 
+
+# Non Contiguous dataset2 ...
+def compare_PFT_weights_NC(dataset1, dataset2, PFT_12_weights):
+    
+    sum_distance = 0
+    
+    # dataset2 is the non continuous one
+    for i in range(dataset2.geodata.shape[0]):
+        for j in range(dataset2.geodata.shape[1]):
+            if not dataset2.geodata.mask[i,j]:
+              llat = dataset2.lats[i,j]
+              llon = dataset2.lons[i,j]
+
+              idx_lat = find_closest(dataset1.lats[0,:],llat)
+              idx_lon = find_closest(dataset1.lons[:,0],llon)
+              if not dataset1.geodata.mask[idx_lon,idx_lat]:
+                try:
+                  sum_distance = sum_distance + PFT_12_weights[dataset1.geodata[idx_lon,idx_lat],dataset2.geodata[i,j]]
+                except:
+                  pass
+                #endtry
+            #endif
+        #endfor
+    #endfor
+
+    return sum_distance
+#enddef	
+
+
+
+# ~ class data_geoEurope :
+    # ~ def __init__(self, geodata, lons, lats, path, pftdict, inputtype):
+        # ~ self.geodata = geodata
+        # ~ self.lons = lons
+        # ~ self.lats = lats
+        # ~ self.path = path
+        # ~ self.pftdict = pftdict
+        # ~ self.inputtype = inputtype
+    # ~ #enddef
+    # ~ def add_lndmsk(self, lndmsk):
+        # ~ self.lndmsk=lndmsk
+	# ~ #enddef		
+
+# ~ #endclass
+
+
+
+
 # ----- MAIN PROGRAM -----
 
 
@@ -599,6 +654,9 @@ if __name__ == '__main__':
     #endif
     
   # endfor
+  
+  distance_value = compare_PFT_weights_NC(full_data_list[0], full_data_list[1], PFT_weights_SEIB_reveals)
+  
   
   # ~ map_dataflt(grid_toPLOT[:,:,5], lons_array,lats_array,titleforPlot,"%"+str(pft_dict[5]), cmap="gist_earth", masklmt=5.0)
 
