@@ -21,11 +21,22 @@ class inputtypes :
   ORCHIDEE_plt = "ORCHIDEE"
 #endclass
 
-known_inputtypes = [inputtypes.SEIB_plt, inputtypes.MLRout_plt, inputtypes.REVEALS_plt, inputtypes.ORCHIDEE_plt]
+known_inputtypes = [
+        inputtypes.SEIB_plt,
+        inputtypes.MLRout_plt,
+        inputtypes.REVEALS_plt,
+        inputtypes.ORCHIDEE_plt
+        ]
 
-grid_choices  = { inputtypes.SEIB_plt : "0.25", inputtypes.MLRout_plt : "0.25", inputtypes.REVEALS_plt : "0.5", inputtypes.ORCHIDEE_plt : "0.25" }
+grid_choices  = {
+        inputtypes.SEIB_plt : "0.25",
+        inputtypes.MLRout_plt : "0.25",
+        inputtypes.REVEALS_plt : "0.5",
+        inputtypes.ORCHIDEE_plt : "0.25"
+        }
 
 class data_geoEurope :
+
     def __init__(self, geodata, lons, lats, path, pftdict, inputtype):
         self.geodata = geodata
         self.lons = lons
@@ -34,12 +45,12 @@ class data_geoEurope :
         self.pftdict = pftdict
         self.inputtype = inputtype
     #enddef
+
     def add_lndmsk(self, lndmsk):
         self.lndmsk=lndmsk
-	#enddef		
+    #enddef
 
 #endclass
-
 
 # Define the correspondance between PFT names and colors
 
@@ -84,7 +95,12 @@ pft_color_MLRout = {
 }
 
 
-PFT_color_choices = {inputtypes.SEIB_plt : pft_color_SEIB, inputtypes.ORCHIDEE_plt : pft_color_ORCHIDEE, inputtypes.MLRout_plt : pft_color_MLRout, inputtypes.REVEALS_plt : pft_color_SEIB}
+PFT_color_choices = {
+        inputtypes.SEIB_plt : pft_color_SEIB,
+        inputtypes.ORCHIDEE_plt : pft_color_ORCHIDEE,
+        inputtypes.MLRout_plt : pft_color_MLRout,
+        inputtypes.REVEALS_plt : pft_color_SEIB
+        }
 
 
 PFT_list_SEIB = ["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg","C3","C4"]
@@ -92,8 +108,16 @@ PFT_list_reveals = ["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg","C3","HPFT"]
 PFT_list_ORCHIDEE = ["solnu", "TrEg","TrSg", "TeNEg", "TeBEg", "TeBSg", "BNEg", "BBSg", "BNSg", "TeC3", "TrC3","BC4"]
 PFT_list_MLRout = None
 
-PFT_list_choices = {inputtypes.SEIB_plt : PFT_list_SEIB, inputtypes.ORCHIDEE_plt : PFT_list_ORCHIDEE, inputtypes.MLRout_plt : PFT_list_MLRout, inputtypes.REVEALS_plt : PFT_list_reveals}
+PFT_list_choices = {
+        inputtypes.SEIB_plt : PFT_list_SEIB,
+        inputtypes.ORCHIDEE_plt : PFT_list_ORCHIDEE,
+        inputtypes.MLRout_plt : PFT_list_MLRout,
+        inputtypes.REVEALS_plt : PFT_list_reveals
+        }
 
+
+# Reading a fixed file for PFT_weights ...
+# [TODO] this should be replaced with a cleaner function, flexible on type comparison
 
 PFT_weights_SEIB_reveals = np.zeros((len(PFT_list_SEIB),len(PFT_list_reveals)),dtype=int)
 
@@ -104,27 +128,25 @@ PFT_weights_SEIB_reveals = PFT_weights.values[:,1:] # 1: to suppress the labelli
 # Utilities functions ...
 # =======================
 
-
 def check_python_version(limit_minor=10) :
   import sys
   if sys.version_info.minor <= limit_minor:
-    raise RuntimeError( "Python version should be >= 3."+str(limit_minor) ) 
+    raise RuntimeError( "Python version should be >= 3."+str(limit_minor) )
   #endif
 #enddef
 
 
 def parse_args() -> argparse.Namespace:
-	
+
    parser = argparse.ArgumentParser()
    parser.add_argument("-i", '--input_type', dest='input_type', type=str, nargs=2, action='append', help='Combined input type: <inputtype> <filename>', required=True)
    parser.add_argument("-w", '--write_out', dest='wrt_out_filen', type=str, help='File name to be used for writing the data out', required=False)
-   # ~ parser.add_argument("-i", '--input_fil', dest='input_dataset', type=str, help='File name or directory name to be used for input data and specified with the plot_type', required=True)
    parser.add_argument('-s', '--substract', dest='substract_flg', action='store_true',help='If set, attempt the difference between the two first dataset with a weight matrix', required=False)  # on/off flag
    parser.add_argument('-d', '--desert', dest='desert_flg', action='store_true')  # on/off flag
    args = parser.parse_args()
-   
+
    return args
-   
+
 #enddef parse_args
 
 # from http://stackoverflow.com/questions/2566412/find-nearest-value-in-numpy-array
@@ -275,7 +297,7 @@ def plot_barsInLON_int(colorlist,llat,llon1,llon2,lats_array,lons_array, data_ar
 
 
 def load_grid_latlon_EU (grid_spacing="0.25", lndmask=True):
-	
+
     match grid_spacing:
         case "0.25":
 
@@ -285,16 +307,16 @@ def load_grid_latlon_EU (grid_spacing="0.25", lndmask=True):
           step_per_degree=4
           lat_init=33
           lon_init=-14
-        
+
         case "0.5":
-          
+
           n_lats = 77
           n_lons = 117
 
           step_per_degree=2
           lat_init=33.5
           lon_init=-10.5
-          
+
         case "1.0":
 
           n_lats = 50
@@ -303,10 +325,10 @@ def load_grid_latlon_EU (grid_spacing="0.25", lndmask=True):
           step_per_degree=1
           lat_init=33.5
           lon_init=-14.5
-			
-        case _: 
+
+        case _:
           pass
-		
+
     #endmatch
 
     # Set lat/lon according to grid definition
@@ -320,15 +342,15 @@ def load_grid_latlon_EU (grid_spacing="0.25", lndmask=True):
         lons_array[j,i] = lon_init+j*1./step_per_degree
       #endfor
     #endfor
-	
+
     if lndmask :
       mask = pd.read_csv('inputdata/SEIB-EU/landmask_'+grid_spacing+'deg.txt',header=None)
-      landmask = mask.values[72:228,664:920]	# Why are these integers there? Should not be OK with non 0.25 grid I think 2024-08-20
+      landmask = mask.values[72:228,664:920]    # Why are these integers there? Should not be OK with non 0.25 grid I think 2024-08-20
       return n_lats, n_lons, lats_array, lons_array, lat_init, lon_init, step_per_degree, landmask
     else:
       return n_lats, n_lons, lats_array, lons_array, lat_init, lon_init, step_per_degree
     #endif
-    
+
 #enddef load_grid_latlon_EU
 
 
@@ -348,22 +370,22 @@ def check_input_dataset( input_dataset, plot_type ):
         #endif
       case _:
         return None
-      #       
-  #endmatch        
-      
+      #
+  #endmatch
+
 #enddef check_input_dataset
 
 
 def read_input_dataset( path_dataset, plot_type, pft_dict, data_map ):
 
   if plot_type == inputtypes.SEIB_plt:
-    
+
     # the typical output of SEIB used is a list of out_npppft[NN].txt file
     # Here the list of fichs defines the PFT numbers that will match the above list of PFTs
     list_fichs=["07", "08", "09", "10", "13", "14", "15", "16"]
     # ~ data_array_nm = np.zeros((n_lons,n_lats,len(list_fichs)))-1.0
     data_array_nm = np.zeros(data_map.shape+(len(list_fichs),))-1.0
-    
+
     # SEIB input is a directory with a list of files, reading up the thing in one big table
     for n_um in list_fichs:
       fich = ""+path_dataset+n_um+".txt"
@@ -387,9 +409,9 @@ def read_input_dataset( path_dataset, plot_type, pft_dict, data_map ):
 
     # Retreiving the PFT number of maximum NPP production
     data_to_Plot_value = data_array.argmax(axis=-1)
-    
+
     # data_to_Plot_value contains the PFT number with maximum NPP production
-    
+
     # ~ # Sepcifying the data that needs to be written out
     # ~ data_to_wrt_valueS = data_array
 
@@ -412,16 +434,16 @@ def read_input_dataset( path_dataset, plot_type, pft_dict, data_map ):
     # ~ for i in range(data_forBars.shape[-1]):
       # ~ data_forBars[:,:,i] = np.ma.masked_less(np.ma.where(landmask.T[:,::-1]>0,data_array[:,:,i],-1),0)
     # ~ #endfor
-    
+
     return data_toPlot
 
   elif plot_type == inputtypes.REVEALS_plt:
-	  
+
     dataPLOT = pd.read_csv(path_dataset)
     n_pft = len(pft_dict)
     # ~ grid_toPLOT = np.zeros((n_lons,n_lats,n_pft+1)) -1.0
     grid_toPLOT = np.zeros(data_map.shape+(n_pft+1,))-1.0
-    
+
     for indx in range(dataPLOT.shape[0]):
       indx_lat = find_closest(lats_array[0,:],dataPLOT.LatDD.values[indx])
       indx_lon = find_closest(lons_array[:,0],dataPLOT.LonDD.values[indx])
@@ -429,18 +451,18 @@ def read_input_dataset( path_dataset, plot_type, pft_dict, data_map ):
     #endfor
 
     data_toPlot = np.ma.where(grid_toPLOT[:,:,-1] < 100.0,np.ma.masked, grid_toPLOT[:,:,0:n_pft].argmax(axis=-1))
-	  	  
+
     return data_toPlot
-  
+
   elif plot_type == inputtypes.MLRout_plt:
-	  
+
     data_array = np.zeros(data_map.shape)
     data_toPLOT = pd.read_csv(path_dataset)
 
     # Assuming that lat and lon are called as such
     lats=data_toPLOT.lat
     lons=data_toPLOT.lon
-    
+
     # Following line depends on the data column name, needs to be updated
     data_brutto=data_toPLOT.kappa # this is a one dimensional array of lat, lon points
 
@@ -453,12 +475,12 @@ def read_input_dataset( path_dataset, plot_type, pft_dict, data_map ):
     #end for
 
     # case of MLRout what has been created is data_array(lon, lat)
-    # Can be plotted with a simple map_dataflt below  
-  
+    # Can be plotted with a simple map_dataflt below
+
     return data_array
-  
+
   elif plot_type == inputtypes.ORCHIDEE_plt:
-	  
+
     dst = n4.Dataset(path_dataset)
     n_pft = len(dst.variables['veget'][:]) # this variable contains an axis with values 0:12, so 13 PFTs
     vegfrac = dst.variables['vegetfrac'] # Vegetation Fraction, time, nvegtyp, lat,lon
@@ -472,7 +494,7 @@ def read_input_dataset( path_dataset, plot_type, pft_dict, data_map ):
     var_to_PLOT = np.ma.masked_less_equal(remap_fracveg.argmax(axis=-1),0)
 
     return var_to_PLOT
-  
+
   #endif
 
 #enddef read_input_dataset
@@ -480,9 +502,9 @@ def read_input_dataset( path_dataset, plot_type, pft_dict, data_map ):
 
 # Non Contiguous is dataset2 ...
 def compare_PFT_weights_NC(dataset1, dataset2, PFT_12_weights):
-    
+
     sum_distance = 0
-    
+    count_points = 0
     datasetout = np.ma.zeros((dataset2.geodata.shape),np.int32)
     type(datasetout)
     # dataset2 is the non continuous one
@@ -498,6 +520,7 @@ def compare_PFT_weights_NC(dataset1, dataset2, PFT_12_weights):
                 try:
                   sum_distance = sum_distance + PFT_12_weights[dataset1.geodata[idx_lon,idx_lat],dataset2.geodata[i,j]]
                   datasetout[i,j] = PFT_12_weights[dataset1.geodata[idx_lon,idx_lat],dataset2.geodata[i,j]]
+                  count_points += 1
                 except:
                   datasetout[i,j] = -99
                   pass
@@ -507,29 +530,10 @@ def compare_PFT_weights_NC(dataset1, dataset2, PFT_12_weights):
             #endif
         #endfor
     #endfor
+
     datasetout = np.ma.masked_where(datasetout<0, datasetout)
-    return sum_distance, datasetout
-#enddef	
-
-
-
-# ~ class data_geoEurope :
-    # ~ def __init__(self, geodata, lons, lats, path, pftdict, inputtype):
-        # ~ self.geodata = geodata
-        # ~ self.lons = lons
-        # ~ self.lats = lats
-        # ~ self.path = path
-        # ~ self.pftdict = pftdict
-        # ~ self.inputtype = inputtype
-    # ~ #enddef
-    # ~ def add_lndmsk(self, lndmsk):
-        # ~ self.lndmsk=lndmsk
-	# ~ #enddef		
-
-# ~ #endclass
-
-
-
+    return sum_distance, datasetout, np.max(PFT_12_weights)*count_points
+#enddef
 
 # ----- MAIN PROGRAM -----
 
@@ -539,53 +543,28 @@ if __name__ == '__main__':
   check_python_version()
 
   got_args = parse_args()
-  
-  
+
+
   # Looping over the series of inputs (in the form of input_type, path_dataset)
-  
+
   full_data_list = []
-  
+
   for nb_if in range(len(got_args.input_type)):
-  
+
     plot_type = got_args.input_type[nb_if][0]
     path_dataset = got_args.input_type[nb_if][1]
-    
+
     if not plot_type in known_inputtypes:
        raise RuntimeError("Unknown plot type, known are :", " ; ".join(str(e) for e in known_inputtypes))
-    #fi 
-
-  
-    # PFTs definition ....
-    # ====================
-
-    # ~ pft_list = []
-
-    # ~ if plot_type == inputtypes.SEIB_plt:
-
-      # ~ # with or without desert
-      # ~ if got_args.desert_flg :
-        # ~ SEIB_pfts=["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg","C3","C4", "DES"]
-      # ~ else:
-        # ~ SEIB_pfts=["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg","C3","C4"]
-      # ~ #endif
-    
-      # ~ pft_list = PFT_list_choices[plot_type]
-    
-    # ~ elif plot_type == inputtypes.REVEALS_plt :
-      # ~ REVEALS_pfts=["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg","C3","HPFT"]
-      # ~ REVEALS_pfts=["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg"]
-
-      # ~ pft_list = REVEALS_pfts
-
-      # ~ n_pft=len(REVEALS_pfts)
-      # ~ pft_dict=REVEALS_pfts[0:n_pft]
+    #fi
 
     pft_list = PFT_list_choices[plot_type]
+
     if got_args.desert_flg :
       pft_list.append("DES")
     #endif
     if not pft_list is None:
-      n_pft=len(pft_list)    
+      n_pft=len(pft_list)
       pft_dict=pft_list[0:n_pft] # should be removed ....
     #endif
 
@@ -595,33 +574,33 @@ if __name__ == '__main__':
     try:
         writeout_file=got_args.wrt_out_filen # is there a file to writeout?
     except:
-	    pass
+        pass
     #endtry
 
     # Loading grid depending on plot_type
     n_lats, n_lons, lats_array, lons_array, lat_init, lon_init, step_per_degree, landmask = load_grid_latlon_EU(grid_spacing=grid_choices[plot_type])
-  
+
     data_array = np.zeros((n_lons,n_lats)) # Base format for the whole thing: a lat,lon placeholder
 
-  
+
     # Check the input data format, depending on plot type
     print(path_dataset, check_input_dataset( path_dataset, plot_type ))
 
     if check_input_dataset( path_dataset, plot_type ) == path_dataset:
       print("Reading input dataset ...")
-	  
-	    # read_input_dataset returns:
-	    # the max npp pft if SEIB is chosen
-	  
-      data_toPlot = read_input_dataset( path_dataset, plot_type, pft_list, data_array ) 
+
+        # read_input_dataset returns:
+        # the max npp pft if SEIB is chosen
+
+      data_toPlot = read_input_dataset( path_dataset, plot_type, pft_list, data_array )
     #endif
-    
+
     # Add the data thus obtained in the data list containing all datasets ...
     full_data_list.append(data_geoEurope(data_toPlot, lons_array, lats_array, path_dataset, pft_list, plot_type))
     if not landmask is None:
        full_data_list[-1].add_lndmsk(landmask)
     #endif
-    
+
   #end_for
 
   if plot_type == "SEIB":
@@ -634,7 +613,7 @@ if __name__ == '__main__':
            # ~ if not np.ma.is_masked(data_to_wrt_valueS[i,j,0]):
              # ~ f_to_write.write(', '.join([str(lons_array[i,j]), str(lats_array[i,j]), ', '.join(str(x) for x in data_to_wrt_valueS[i,j,:])]))
              # ~ f_to_write.write('\n')
-           # ~ # 
+           # ~ #
         # ~ #endfor
       # ~ #endfor
       # ~ f_to_write.close()
@@ -643,33 +622,40 @@ if __name__ == '__main__':
     pass
 
   #endif
-  
-  # map_dataint needs: 2D array (ints) to be plotted ; lons and lats for the grid ; path to the dataset ; pft_dict relating to the type
 
-  # ~ map_dataint(data_toPlot,lons_array,lats_array,path_dataset,"PFT name", colorlist=[pft_color_dict[pft] for pft in pft_dict], labels=pft_dict)
-  # ~ data_geoEurope :
-    # ~ def __init__(self, geodata, lons, lats, path, pftdict, inputtype)
   for nb_data in range(len(full_data_list)):
-	  	  
+
     to_plot = full_data_list[nb_data]
-    
+
     pft_color_dict = PFT_color_choices[to_plot.inputtype]
     if to_plot.inputtype == inputtypes.MLRout_plt:
       map_dataflt(np.ma.masked_less(np.ma.where(to_plot.lndmsk.T[:,::-1]>0,to_plot.geodata,-1),0), to_plot.lons,to_plot.lats,os.path.basename(to_plot.path),"[1]", cmap="BrBG", masklmt=-5.0)
-    else:		
+    else:
       map_dataint(to_plot.geodata,to_plot.lons,to_plot.lats,to_plot.path,"PFT name", colorlist=[pft_color_dict[pft] for pft in to_plot.pftdict], labels=to_plot.pftdict)
     #endif
-    
+
   # endfor
-  
-  if got_args.substract_flg:  
+
+  if got_args.substract_flg:
     distance_color_dict={0:'lime',1:"darkorange",2:"darkred",3:"indigo"}
-    distance_value, distance_map = compare_PFT_weights_NC(full_data_list[0], full_data_list[1], PFT_weights_SEIB_reveals)
-    map_dataint(distance_map,full_data_list[1].lons,full_data_list[1].lats,""+str(distance_value),"Distance value [0-3]", colorlist=[distance_color_dict[values] for values in distance_color_dict])
+    distance_value, distance_map, distance_max = compare_PFT_weights_NC(full_data_list[0], full_data_list[1], PFT_weights_SEIB_reveals)
+    map_dataint(distance_map,full_data_list[1].lons,full_data_list[1].lats,""+str(distance_value)+"/"+str(distance_max),"Distance value [0-3]", colorlist=[distance_color_dict[values] for values in distance_color_dict])
   #endif substract
-  
-  
-  
+
+  input("Press Any Key to close program")
+
+
+#endif main
+
+
+# The End of All Things (op. cit.)
+
+
+
+
+# Old bits to be kept for now ...
+
+
   # ~ map_dataflt(grid_toPLOT[:,:,5], lons_array,lats_array,titleforPlot,"%"+str(pft_dict[5]), cmap="gist_earth", masklmt=5.0)
 
   # ~ map_dataflt(np.ma.masked_less(np.ma.where(landmask.T[:,::-1]>0,data_array,-1),0), lons_array,lats_array,os.path.basename(file_toPLOT),"[1]", cmap="BrBG", masklmt=-5.0)
@@ -685,6 +671,3 @@ if __name__ == '__main__':
 
   # ~ plot_barsInLON_int([pft_color_dict[pft] for pft in pft_dict_noDES],llat,llon1,llon2,lats_array,lons_array, data_forBars,pft_dict_noDES,show='True', title=titleforPlot)
 
-#endif main
-
-# The End of All Things (op. cit.)
