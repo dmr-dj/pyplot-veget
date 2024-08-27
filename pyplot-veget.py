@@ -1,14 +1,14 @@
 #!/usr/bin/python3
 # vim: set fileencoding=utf-8 :
 
-__author__ = "Didier M. Roche, Isabeau Bertrix, Mathis Voisin"
-__copyright__ = "Copyright 2024, HIVE project"
-__credits__ = ["Jean-Yves Peterschmitt"]
-__license__ = "Apache-2.0"
-__version__ = "0.6"
+__author__     = "Didier M. Roche, Isabeau Bertrix, Mathis Voisin"
+__copyright__  = "Copyright 2024, HIVE project"
+__credits__    = ["Jean-Yves Peterschmitt"]
+__license__    = "Apache-2.0"
+__version__    = "0.6"
 __maintainer__ = "Didier M. Roche"
-__email__ = "didier.roche@lsce.ipsl.fr"
-__status__ = "Development"
+__email__      = "didier.roche@lsce.ipsl.fr"
+__status__     = "Development"
 
 # Base os stuff
 import os
@@ -130,16 +130,6 @@ PFT_list_choices = {
         inputtypes.MLRout_plt : PFT_list_MLRout,
         inputtypes.REVEALS_plt : PFT_list_reveals
         }
-
-
-# Reading a fixed file for PFT_weights ...
-# [TODO] this should be replaced with a cleaner function, flexible on type comparison
-
-PFT_weights_SEIB_reveals = np.zeros((len(PFT_list_SEIB),len(PFT_list_reveals)),dtype=int)
-
-PFT_weights = pd.read_csv("inputdata/poids_PFTs_reveals_SEIB.csv")
-
-PFT_weights_SEIB_reveals = PFT_weights.values[:,1:] # 1: to suppress the labelling column ...
 
 # Utilities functions ...
 # =======================
@@ -577,6 +567,43 @@ def compare_PFT_weights_NC(dataset1, dataset2, PFT_12_weights):
     return sum_distance, datasetout, np.max(PFT_12_weights)*count_points
 #enddef
 
+
+def get_PFT_weights(data01,data02):
+
+    std_path = "inputdata/poids_PFTs_"
+    ext_file = ".csv"
+
+    dataplottype01 = data01.inputtype
+    dataplottype02 = data02.inputtype
+
+    file01 = std_path+dataplottype01+"_"+dataplottype02+ext_file
+    file02 = std_path+dataplottype02+"_"+dataplottype01+ext_file
+
+    exists01 = os.path.isfile(file01)
+    exists02 = os.path.isfile(file02)
+
+    PFT_list01 = data01.pftdict
+    PFT_list02 = data02.pftdict
+
+    if exists01 | exists02:
+        # Handle the reading of the file ...
+       PFT_weights_SEIB_reveals = np.zeros((len(PFT_list01),len(PFT_list02)),dtype=int)
+       if exists01:
+           PFT_weights = pd.read_csv(file01)
+       else:
+           PFT_weights = pd.read_csv(file02)
+       #endif
+       PFT_weights_read = PFT_weights.values[:,1:] # 1: to suppress the labelling column ...
+    else:
+        # No weights file / break / raise exception?
+        PFT_weights_read = None
+    #endif
+
+    return PFT_weights_read
+
+#enddef get_PFT_weights
+
+
 # ----- MAIN PROGRAM -----
 
 
@@ -664,8 +691,31 @@ if __name__ == '__main__':
   # endfor
 
   if got_args.substract_flg:
+
     distance_color_dict={0:'lime',1:"darkorange",2:"darkred",3:"indigo"}
-    distance_value, distance_map, distance_max = compare_PFT_weights_NC(full_data_list[0], full_data_list[1], PFT_weights_SEIB_reveals)
+
+    dataset_01 = full_data_list[0]
+    dataset_02 = full_data_list[1]
+
+    match dataset_02.inputtype :
+
+        case inputtypes.SEIB_plt | inputtypes.ORCHIDEE_plt :
+            PFT_weights_toUse = get_PFT_weights(dataset01, dataset_02)
+            distance_value, distance_map, distance_max = compare_PFT_weights_NC(dataset_01, dataset_02, PFT_weights_toUse)
+        #endcase
+
+        case inputtypes.REVEALS_plt :
+            PFT_weights_toUse = get_PFT_weights(dataset_01, dataset_02)
+            distance_value, distance_map, distance_max = compare_PFT_weights_NC(dataset_01, dataset_02, PFT_weights_toUse)
+        #endcase
+
+        case _:
+            distance_value, distance_map, distance_max = None, None, None
+        #endcase
+
+    #endmatch
+
+    # ~ distance_value, distance_map, distance_max = compare_PFT_weights_NC(full_data_list[0], full_data_list[1], PFT_weights_SEIB_reveals)
     map_dataint(distance_map,full_data_list[1].lons,full_data_list[1].lats
                ,""+str(distance_value)+"/"+str(distance_max),"Distance value [1]"
                ,colorlist=[distance_color_dict[values] for values in distance_color_dict]
