@@ -119,6 +119,7 @@ def parse_args() -> argparse.Namespace:
    parser.add_argument("-i", '--input_type', dest='input_type', type=str, nargs=2, action='append', help='Combined input type: <inputtype> <filename>', required=True)
    parser.add_argument("-w", '--write_out', dest='wrt_out_filen', type=str, help='File name to be used for writing the data out', required=False)
    # ~ parser.add_argument("-i", '--input_fil', dest='input_dataset', type=str, help='File name or directory name to be used for input data and specified with the plot_type', required=True)
+   parser.add_argument('-s', '--substract', dest='substract_flg', action='store_true',help='If set, attempt the difference between the two first dataset with a weight matrix', required=False)  # on/off flag
    parser.add_argument('-d', '--desert', dest='desert_flg', action='store_true')  # on/off flag
    args = parser.parse_args()
    
@@ -648,7 +649,6 @@ if __name__ == '__main__':
   # ~ map_dataint(data_toPlot,lons_array,lats_array,path_dataset,"PFT name", colorlist=[pft_color_dict[pft] for pft in pft_dict], labels=pft_dict)
   # ~ data_geoEurope :
     # ~ def __init__(self, geodata, lons, lats, path, pftdict, inputtype)
-
   for nb_data in range(len(full_data_list)):
 	  	  
     to_plot = full_data_list[nb_data]
@@ -662,9 +662,13 @@ if __name__ == '__main__':
     
   # endfor
   
-  distance_color_dict={0:'lime',1:"darkorange",2:"darkred",3:"indigo"}
-  distance_value, distance_map = compare_PFT_weights_NC(full_data_list[0], full_data_list[1], PFT_weights_SEIB_reveals)
-  map_dataint(distance_map,full_data_list[1].lons,full_data_list[1].lats,""+str(distance_value),"Distance value [0-3]", colorlist=[distance_color_dict[values] for values in distance_color_dict])
+  if got_args.substract_flg:  
+    distance_color_dict={0:'lime',1:"darkorange",2:"darkred",3:"indigo"}
+    distance_value, distance_map = compare_PFT_weights_NC(full_data_list[0], full_data_list[1], PFT_weights_SEIB_reveals)
+    map_dataint(distance_map,full_data_list[1].lons,full_data_list[1].lats,""+str(distance_value),"Distance value [0-3]", colorlist=[distance_color_dict[values] for values in distance_color_dict])
+  #endif substract
+  
+  
   
   # ~ map_dataflt(grid_toPLOT[:,:,5], lons_array,lats_array,titleforPlot,"%"+str(pft_dict[5]), cmap="gist_earth", masklmt=5.0)
 
