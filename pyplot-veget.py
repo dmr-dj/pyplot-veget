@@ -138,7 +138,7 @@ PFT_list_choices = {
 PFT_weights_SEIB_reveals = np.zeros((len(PFT_list_SEIB),len(PFT_list_reveals)),dtype=int)
 
 PFT_weights = pd.read_csv("inputdata/poids_PFTs_reveals_SEIB.csv")
-print(PFT_weights_SEIB_reveals.shape,PFT_weights.values.shape)
+
 PFT_weights_SEIB_reveals = PFT_weights.values[:,1:] # 1: to suppress the labelling column ...
 
 # Utilities functions ...
