@@ -119,7 +119,7 @@ PFT_color_choices = {
 PFT_list_SEIB =     ["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg"
                     ,"C3","C4"]
 PFT_list_reveals =  ["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg"
-                    ,"C3","HPFT"]
+                    ,"C3"]#, "HPFT"]
 PFT_list_ORCHIDEE = ["solnu", "TrEg","TrSg","TeNEg","TeBEg","TeBSg"
                     ,"BNEg","BBSg","BNSg","TeC3","TrC3","BC4"]
 PFT_list_MLRout = None
@@ -138,7 +138,7 @@ PFT_list_choices = {
 PFT_weights_SEIB_reveals = np.zeros((len(PFT_list_SEIB),len(PFT_list_reveals)),dtype=int)
 
 PFT_weights = pd.read_csv("inputdata/poids_PFTs_reveals_SEIB.csv")
-
+print(PFT_weights_SEIB_reveals.shape,PFT_weights.values.shape)
 PFT_weights_SEIB_reveals = PFT_weights.values[:,1:] # 1: to suppress the labelling column ...
 
 # Utilities functions ...
@@ -639,7 +639,7 @@ if __name__ == '__main__':
     # Add the data thus obtained in the data list containing all datasets ...
     full_data_list.append(data_geoEurope(data_toPlot, lons_array, lats_array, path_dataset, pft_list, plot_type))
     if not landmask is None:
-       full_data_list[-1].add_lndmsk(landmask)
+      full_data_list[-1].add_lndmsk(landmask)
     #endif
 
   #end_for
