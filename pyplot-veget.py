@@ -10,16 +10,19 @@ __maintainer__ = "Didier M. Roche"
 __email__ = "didier.roche@lsce.ipsl.fr"
 __status__ = "Development"
 
+# Base os stuff
+import os
+import argparse
 
-import pandas as pd
-import matplotlib.pyplot as plt
+# Data handling
 import numpy as np
+import netCDF4 as n4
+import pandas as pd
+
+# For plotting
+import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 from matplotlib import colors
-import os
-import netCDF4 as n4
-
-import argparse
 
 # Generic definitions
 # ===================
@@ -641,26 +644,6 @@ if __name__ == '__main__':
 
   #end_for
 
-  if plot_type == "SEIB":
-
-    # ~ # If needed, write out the output file for data_to_wrt_valueS
-    # ~ if writeout_file != None :
-      # ~ f_to_write = open(writeout_file, 'w')
-      # ~ for i in range(data_array.shape[0]):
-        # ~ for j in range(data_array.shape[1]):
-           # ~ if not np.ma.is_masked(data_to_wrt_valueS[i,j,0]):
-             # ~ f_to_write.write(', '.join([str(lons_array[i,j]), str(lats_array[i,j]), ', '.join(str(x) for x in data_to_wrt_valueS[i,j,:])]))
-             # ~ f_to_write.write('\n')
-           # ~ #
-        # ~ #endfor
-      # ~ #endfor
-      # ~ f_to_write.close()
-    # ~ #endif
-
-    pass
-
-  #endif
-
   for nb_data in range(len(full_data_list)):
 
     to_plot = full_data_list[nb_data]
@@ -718,3 +701,20 @@ if __name__ == '__main__':
 
   # ~ plot_barsInLON_int([pft_color_dict[pft] for pft in pft_dict_noDES],llat,llon1,llon2,lats_array,lons_array, data_forBars,pft_dict_noDES,show='True', title=titleforPlot)
 
+
+
+
+
+    # ~ # If needed, write out the output file for data_to_wrt_valueS
+    # ~ if writeout_file != None :
+      # ~ f_to_write = open(writeout_file, 'w')
+      # ~ for i in range(data_array.shape[0]):
+        # ~ for j in range(data_array.shape[1]):
+           # ~ if not np.ma.is_masked(data_to_wrt_valueS[i,j,0]):
+             # ~ f_to_write.write(', '.join([str(lons_array[i,j]), str(lats_array[i,j]), ', '.join(str(x) for x in data_to_wrt_valueS[i,j,:])]))
+             # ~ f_to_write.write('\n')
+           # ~ #
+        # ~ #endfor
+      # ~ #endfor
+      # ~ f_to_write.close()
+    # ~ #endif
