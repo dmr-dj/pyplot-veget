@@ -1,5 +1,15 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # vim: set fileencoding=utf-8 :
+
+__author__ = "Didier M. Roche, Isabeau Bertrix, Mathis Voisin"
+__copyright__ = "Copyright 2024, HIVE project"
+__credits__ = ["Jean-Yves Peterschmitt"]
+__license__ = "Apache-2.0"
+__version__ = "0.6"
+__maintainer__ = "Didier M. Roche"
+__email__ = "didier.roche@lsce.ipsl.fr"
+__status__ = "Development"
+
 
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -103,9 +113,12 @@ PFT_color_choices = {
         }
 
 
-PFT_list_SEIB = ["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg","C3","C4"]
-PFT_list_reveals = ["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg","C3","HPFT"]
-PFT_list_ORCHIDEE = ["solnu", "TrEg","TrSg", "TeNEg", "TeBEg", "TeBSg", "BNEg", "BBSg", "BNSg", "TeC3", "TrC3","BC4"]
+PFT_list_SEIB =     ["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg"
+                    ,"C3","C4"]
+PFT_list_reveals =  ["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg"
+                    ,"C3","HPFT"]
+PFT_list_ORCHIDEE = ["solnu", "TrEg","TrSg","TeNEg","TeBEg","TeBSg"
+                    ,"BNEg","BBSg","BNSg","TeC3","TrC3","BC4"]
 PFT_list_MLRout = None
 
 PFT_list_choices = {
@@ -139,10 +152,21 @@ def check_python_version(limit_minor=10) :
 def parse_args() -> argparse.Namespace:
 
    parser = argparse.ArgumentParser()
-   parser.add_argument("-i", '--input_type', dest='input_type', type=str, nargs=2, action='append', help='Combined input type: <inputtype> <filename>', required=True)
-   parser.add_argument("-w", '--write_out', dest='wrt_out_filen', type=str, help='File name to be used for writing the data out', required=False)
-   parser.add_argument('-s', '--substract', dest='substract_flg', action='store_true',help='If set, attempt the difference between the two first dataset with a weight matrix', required=False)  # on/off flag
-   parser.add_argument('-d', '--desert', dest='desert_flg', action='store_true')  # on/off flag
+   parser.add_argument("-i", '--input_type', dest='input_type',
+                       type=str, nargs=2, action='append',
+                       help='Combined input type: <inputtype> <filename>'
+                       ,required=True)
+   parser.add_argument("-w", '--write_out', dest='wrt_out_filen',
+                       type=str,
+                       help='File name to be used for writing the data out'
+                       ,required=False)
+   parser.add_argument('-s', '--substract', dest='substract_flg',
+                       action='store_true',
+                       help='If set, attempt the difference between the two first dataset with a weight matrix'
+                       ,required=False)  # on/off flag
+   parser.add_argument('-d', '--desert', dest='desert_flg', action='store_true',
+                       help='Add an auto-computed desert pseudo-PFT based on low NPP points'
+                       ,required=False)  # on/off flag
    args = parser.parse_args()
 
    return args
@@ -190,7 +214,8 @@ def map_dataint(var_map, lons, lats, title, legend_label, colorlist,
     mesh = ax.pcolormesh(lons, lats, var_map, cmap=cmap, transform=crs,
                           vmin=min_bounds-0.5, vmax=max_bounds+0.5)
 
-    cbar = plt.colorbar(mesh, orientation='vertical', shrink=0.61, label=legend_label,ticks=fix_bounds)
+    cbar = plt.colorbar(mesh, orientation='vertical', shrink=0.61,
+                        label=legend_label,ticks=fix_bounds)
 
     if labels != None:
         cbar.ax.set_yticklabels(labels[round(min_bounds):round(max_bounds)+1])
@@ -237,7 +262,8 @@ def map_dataflt(var_map, lons, lats, title, legend_label, cmap='viridis',
     mesh = ax.pcolormesh(lons, lats, var_tomap, cmap=cmap, transform=crs,
                           vmin=min_bounds-0.5, vmax=max_bounds+0.5)
 
-    cbar = plt.colorbar(mesh, orientation='vertical', shrink=0.61, label=legend_label)
+    cbar = plt.colorbar(mesh, orientation='vertical', shrink=0.61,
+                        label=legend_label)
 
     ax.gridlines()
     ax.coastlines()
@@ -249,16 +275,22 @@ def map_dataflt(var_map, lons, lats, title, legend_label, cmap='viridis',
 
 #enddef
 
-def plot_barsInLON_int(colorlist,llat,llon1,llon2,lats_array,lons_array, data_array,pft_dict,show='False', Mean='False', title=""):
-  import matplotlib.pyplot as plt
+def plot_barsInLON_int(colorlist,llat,llon1,llon2,lats_array,lons_array
+                      ,data_array,pft_dict,show='False', Mean='False'
+                      , title=""):
+
   fig, ax = plt.subplots(figsize=(10,5))
+
   if Mean == 'True':
     for j in range(len(colorlist)):
       idx_lat = find_closest(lats_array[0,:],llat)
       idx_lon1 = find_closest(lons_array[:,0],llon1)
       idx_lon2 = find_closest(lons_array[:,0],llon2)
       data_mean = np.ma.mean(data_array[idx_lon1:idx_lon2,idx_lat,:],axis=0) * 100
-      ax.bar(""+str(llon1)+":"+str(llon2),data_mean[j],bottom=np.ma.sum(data_mean[:j], axis = -1), label=pft_dict[j], color=colorlist[j])
+      ax.bar(""+str(llon1)+":"+str(llon2),data_mean[j]
+            ,bottom=np.ma.sum(data_mean[:j], axis = -1)
+            ,label=pft_dict[j],color=colorlist[j])
+
     #data_mean = data_array[:,idx_lat,:]
     #ax.bar(lons_array[:,0],data_mean[:,j].filled(0),bottom=np.sum(data_mean[:,:j], axis = -1).filled(0), label=pft_dict[j], color=color)
   #endfor
@@ -273,12 +305,16 @@ def plot_barsInLON_int(colorlist,llat,llon1,llon2,lats_array,lons_array, data_ar
         print(llon1, llon2, addlon,np.ma.sum(data_mean[:], axis = -1))
         if np.ma.sum(data_mean[:], axis = -1) > 0:
           if legend == 0:
-            ax.bar(""+str(llon1+addlon),data_mean[j],bottom=np.ma.sum(data_mean[:j], axis = -1), label=pft_dict[j], color=colorlist[j])
+            ax.bar(""+str(llon1+addlon),data_mean[j]
+                  ,bottom=np.ma.sum(data_mean[:j], axis = -1)
+                  ,label=pft_dict[j],color=colorlist[j])
             if j == len(colorlist) - 1:
                legend = 1
             #endif
           else:
-            ax.bar(""+str(llon1+addlon),data_mean[j],bottom=np.ma.sum(data_mean[:j], axis = -1), color=colorlist[j])
+            ax.bar(""+str(llon1+addlon),data_mean[j]
+                  ,bottom=np.ma.sum(data_mean[:j], axis = -1)
+                  , color=colorlist[j])
           #endif
         #endif
     #data_mean = data_array[:,idx_lat,:]
@@ -357,17 +393,19 @@ def load_grid_latlon_EU (grid_spacing="0.25", lndmask=True):
 def check_input_dataset( input_dataset, plot_type ):
 
   match plot_type :
+
       case inputtypes.SEIB_plt:
-      # SEIB needs a directory as input
-      # ~ path_data = "test-data/out_6k_TC/out_npppft"
+      # SEIB needs a directory and many subfiles as input, testing directory presence
         if os.path.isdir(os.path.dirname(input_dataset)):
            return input_dataset
         #endif
+
       # REVEALS type need a csv file as input / MLRout as well
       case inputtypes.REVEALS_plt | inputtypes.MLRout_plt | inputtypes.ORCHIDEE_plt :
         if os.path.isfile(input_dataset):
            return input_dataset
         #endif
+
       case _:
         return None
       #
@@ -392,7 +430,6 @@ def read_input_dataset( path_dataset, plot_type, pft_dict, data_map ):
       data = pd.read_csv(fich,header=None)
       data_array_nm[:,:,list_fichs.index(n_um)] = data.values[:,0:-1].T[:,::-1]
     #endfor
-
 
     # here data_array_nm contains the lons, lats, pft_typ, npp values
 
@@ -503,11 +540,12 @@ def read_input_dataset( path_dataset, plot_type, pft_dict, data_map ):
 # Non Contiguous is dataset2 ...
 def compare_PFT_weights_NC(dataset1, dataset2, PFT_12_weights):
 
+    # Local variables
     sum_distance = 0
     count_points = 0
     datasetout = np.ma.zeros((dataset2.geodata.shape),np.int32)
-    type(datasetout)
-    # dataset2 is the non continuous one
+
+    # dataset2 is the non continuous one, hence looping on it
     for i in range(dataset2.geodata.shape[0]):
         for j in range(dataset2.geodata.shape[1]):
             if not dataset2.geodata.mask[i,j]:
@@ -518,8 +556,9 @@ def compare_PFT_weights_NC(dataset1, dataset2, PFT_12_weights):
               idx_lon = find_closest(dataset1.lons[:,0],llon)
               if not dataset1.geodata.mask[idx_lon,idx_lat]:
                 try:
-                  sum_distance = sum_distance + PFT_12_weights[dataset1.geodata[idx_lon,idx_lat],dataset2.geodata[i,j]]
-                  datasetout[i,j] = PFT_12_weights[dataset1.geodata[idx_lon,idx_lat],dataset2.geodata[i,j]]
+                  weigth_value = PFT_12_weights[dataset1.geodata[idx_lon,idx_lat],dataset2.geodata[i,j]]
+                  sum_distance += weigth_value
+                  datasetout[i,j] = weigth_value
                   count_points += 1
                 except:
                   datasetout[i,j] = -99
@@ -543,7 +582,6 @@ if __name__ == '__main__':
   check_python_version()
 
   got_args = parse_args()
-
 
   # Looping over the series of inputs (in the form of input_type, path_dataset)
 
@@ -629,9 +667,15 @@ if __name__ == '__main__':
 
     pft_color_dict = PFT_color_choices[to_plot.inputtype]
     if to_plot.inputtype == inputtypes.MLRout_plt:
-      map_dataflt(np.ma.masked_less(np.ma.where(to_plot.lndmsk.T[:,::-1]>0,to_plot.geodata,-1),0), to_plot.lons,to_plot.lats,os.path.basename(to_plot.path),"[1]", cmap="BrBG", masklmt=-5.0)
+      map_dataflt(np.ma.masked_less(np.ma.where(to_plot.lndmsk.T[:,::-1]>0,to_plot.geodata,-1),0)
+                 ,to_plot.lons,to_plot.lats,os.path.basename(to_plot.path),"[1]"
+                 , cmap="BrBG", masklmt=-5.0
+                 )
     else:
-      map_dataint(to_plot.geodata,to_plot.lons,to_plot.lats,to_plot.path,"PFT name", colorlist=[pft_color_dict[pft] for pft in to_plot.pftdict], labels=to_plot.pftdict)
+      map_dataint(to_plot.geodata,to_plot.lons,to_plot.lats,to_plot.path
+                 ,"PFT name", colorlist=[pft_color_dict[pft] for pft in to_plot.pftdict]
+                 , labels=to_plot.pftdict
+                 )
     #endif
 
   # endfor
@@ -639,7 +683,10 @@ if __name__ == '__main__':
   if got_args.substract_flg:
     distance_color_dict={0:'lime',1:"darkorange",2:"darkred",3:"indigo"}
     distance_value, distance_map, distance_max = compare_PFT_weights_NC(full_data_list[0], full_data_list[1], PFT_weights_SEIB_reveals)
-    map_dataint(distance_map,full_data_list[1].lons,full_data_list[1].lats,""+str(distance_value)+"/"+str(distance_max),"Distance value [0-3]", colorlist=[distance_color_dict[values] for values in distance_color_dict])
+    map_dataint(distance_map,full_data_list[1].lons,full_data_list[1].lats
+               ,""+str(distance_value)+"/"+str(distance_max),"Distance value [1]"
+               ,colorlist=[distance_color_dict[values] for values in distance_color_dict]
+               )
   #endif substract
 
   input("Press Any Key to close program")
