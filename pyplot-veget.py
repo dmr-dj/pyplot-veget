@@ -477,11 +477,13 @@ def read_input_dataset( path_dataset, plot_type, pft_dict, data_map ):
 #enddef read_input_dataset
 
 
-# Non Contiguous dataset2 ...
+# Non Contiguous is dataset2 ...
 def compare_PFT_weights_NC(dataset1, dataset2, PFT_12_weights):
     
     sum_distance = 0
     
+    datasetout = np.ma.zeros((dataset2.geodata.shape),np.int32)
+    type(datasetout)
     # dataset2 is the non continuous one
     for i in range(dataset2.geodata.shape[0]):
         for j in range(dataset2.geodata.shape[1]):
@@ -494,14 +496,18 @@ def compare_PFT_weights_NC(dataset1, dataset2, PFT_12_weights):
               if not dataset1.geodata.mask[idx_lon,idx_lat]:
                 try:
                   sum_distance = sum_distance + PFT_12_weights[dataset1.geodata[idx_lon,idx_lat],dataset2.geodata[i,j]]
+                  datasetout[i,j] = PFT_12_weights[dataset1.geodata[idx_lon,idx_lat],dataset2.geodata[i,j]]
                 except:
+                  datasetout[i,j] = -99
                   pass
                 #endtry
+            else:
+                datasetout[i,j] = -99
             #endif
         #endfor
     #endfor
-
-    return sum_distance
+    datasetout = np.ma.masked_where(datasetout<0, datasetout)
+    return sum_distance, datasetout
 #enddef	
 
 
@@ -646,6 +652,7 @@ if __name__ == '__main__':
   for nb_data in range(len(full_data_list)):
 	  	  
     to_plot = full_data_list[nb_data]
+    
     pft_color_dict = PFT_color_choices[to_plot.inputtype]
     if to_plot.inputtype == inputtypes.MLRout_plt:
       map_dataflt(np.ma.masked_less(np.ma.where(to_plot.lndmsk.T[:,::-1]>0,to_plot.geodata,-1),0), to_plot.lons,to_plot.lats,os.path.basename(to_plot.path),"[1]", cmap="BrBG", masklmt=-5.0)
@@ -655,8 +662,9 @@ if __name__ == '__main__':
     
   # endfor
   
-  distance_value = compare_PFT_weights_NC(full_data_list[0], full_data_list[1], PFT_weights_SEIB_reveals)
-  
+  distance_color_dict={0:'lime',1:"darkorange",2:"darkred",3:"indigo"}
+  distance_value, distance_map = compare_PFT_weights_NC(full_data_list[0], full_data_list[1], PFT_weights_SEIB_reveals)
+  map_dataint(distance_map,full_data_list[1].lons,full_data_list[1].lats,""+str(distance_value),"Distance value [0-3]", colorlist=[distance_color_dict[values] for values in distance_color_dict])
   
   # ~ map_dataflt(grid_toPLOT[:,:,5], lons_array,lats_array,titleforPlot,"%"+str(pft_dict[5]), cmap="gist_earth", masklmt=5.0)
 
