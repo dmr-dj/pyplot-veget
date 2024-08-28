@@ -5,7 +5,7 @@ __author__     = "Didier M. Roche, Isabeau Bertrix, Mathis Voisin"
 __copyright__  = "Copyright 2024, HIVE project"
 __credits__    = ["Jean-Yves Peterschmitt"]
 __license__    = "Apache-2.0"
-__version__    = "0.6"
+__version__    = "0.7"
 __maintainer__ = "Didier M. Roche"
 __email__      = "didier.roche@lsce.ipsl.fr"
 __status__     = "Development"
@@ -26,6 +26,16 @@ from matplotlib import colors
 
 # Generic definitions
 # ===================
+
+# VERBOSITY LEVELS
+
+V_INFO = 1
+V_WARN = 2
+V_ERRO = 3
+
+V_dict = { V_INFO : "INFO: " , V_WARN : "WARN: ", V_ERRO : "SOFT ERROR: "}
+
+# Known types for models ...
 
 class inputtypes :
   SEIB_plt = "SEIB"
@@ -160,6 +170,8 @@ def parse_args() -> argparse.Namespace:
    parser.add_argument('-d', '--desert', dest='desert_flg', action='store_true',
                        help='Add an auto-computed desert pseudo-PFT based on low NPP points'
                        ,required=False)  # on/off flag
+   parser.add_argument('-v', '--verbosity', action="count",
+                       help="increase output verbosity (e.g., -vv is more than -v)")
    args = parser.parse_args()
 
    return args
@@ -203,7 +215,7 @@ def map_dataint(var_map, lons, lats, title, legend_label, colorlist,
     ax.set_extent(extent)
     ax.gridlines()
 
-    print(min_bounds, max_bounds, nbs_bounds)
+    v_print(V_WARN,"Bounds in map_dataint: ",min_bounds, max_bounds, nbs_bounds)
     mesh = ax.pcolormesh(lons, lats, var_map, cmap=cmap, transform=crs,
                           vmin=min_bounds-0.5, vmax=max_bounds+0.5)
 
@@ -295,7 +307,7 @@ def plot_barsInLON_int(colorlist,llat,llon1,llon2,lats_array,lons_array
       # data_mean = np.ma.masked_where(data_array[idx_lon,idx_lat,:] <= 0,data_array[idx_lon,idx_lat,:])
       data_mean = data_array[idx_lon,idx_lat,:]
       for j in range(len(colorlist)):
-        print(llon1, llon2, addlon,np.ma.sum(data_mean[:], axis = -1))
+        # ~ print(llon1, llon2, addlon,np.ma.sum(data_mean[:], axis = -1))
         if np.ma.sum(data_mean[:], axis = -1) > 0:
           if legend == 0:
             ax.bar(""+str(llon1+addlon),data_mean[j]
@@ -515,7 +527,7 @@ def read_input_dataset( path_dataset, plot_type, pft_dict, data_map ):
     n_pft = len(dst.variables['veget'][:]) # this variable contains an axis with values 0:12, so 13 PFTs
     vegfrac = dst.variables['vegetfrac'] # Vegetation Fraction, time, nvegtyp, lat,lon
     vegfrc = vegfrac[-1,:,:,:]  # Taking last time step
-    print(" :: ", len(pft_list))
+    # ~ print(" :: ", len(pft_list))
     remap_fracveg = np.zeros(data_map.shape+(n_pft,))
     for i in range(n_pft):
       remap_fracveg[:,:,i] = vegfrc[i,::-1,:].T
@@ -597,16 +609,16 @@ def get_PFT_weights(data01,data02):
         PFT_weights_read = None
     #endif
 
-    print("Check consistency ::")
-    print("Dataset 01 :: "+dataplottype01)
-    print("PFTs nb & list:", len(PFT_list01))
-    print(PFT_list01)
-    print("===================")
-    print("Dataset 02 :: "+dataplottype02)
-    print("PFTs nb & list:", len(PFT_list02))
-    print(PFT_list02)
-    print("===================")
-    print("Weights table:", PFT_weights_read.shape)
+    v_print(V_INFO,"Check consistency ::")
+    v_print(V_INFO,"Dataset 01 :: "+dataplottype01)
+    v_print(V_INFO,"PFTs nb & list:", len(PFT_list01))
+    v_print(V_INFO,PFT_list01)
+    v_print(V_INFO,"===================")
+    v_print(V_INFO,"Dataset 02 :: "+dataplottype02)
+    v_print(V_INFO,"PFTs nb & list:", len(PFT_list02))
+    v_print(V_INFO,PFT_list02)
+    v_print(V_INFO,"===================")
+    v_print(V_INFO,"Weights table:", PFT_weights_read.shape)
 
     if ( not PFT_weights_read.shape[0] == len(PFT_list01) ) or ( not PFT_weights_read.shape[1] == len(PFT_list02) ):
         raise IndexError('PFT shapes in base list and weights table do not conform')
@@ -625,6 +637,18 @@ if __name__ == '__main__':
   check_python_version()
 
   got_args = parse_args()
+
+  # Use the verbosity print code adapted from: https://stackoverflow.com/questions/5980042/how-to-implement-the-verbose-or-v-option-into-a-script
+  if got_args.verbosity:
+      def _v_print(*verb_args):
+          if verb_args[0] > (3 - got_args.verbosity):
+              print(V_dict[verb_args[0]] + " ".join(str(e) for e in verb_args[1:])) # V_dict above is defining the type of message level
+  else:
+      _v_print = lambda *a: None  # do-nothing function
+
+  global v_print
+  v_print = _v_print
+  # <- End verbosity code ...
 
   # Looping over the series of inputs (in the form of input_type, path_dataset)
 
@@ -665,10 +689,10 @@ if __name__ == '__main__':
 
 
     # Check the input data format, depending on plot type
-    print(path_dataset, check_input_dataset( path_dataset, plot_type ))
+    v_print(V_WARN,"Check input data format: ", path_dataset, check_input_dataset( path_dataset, plot_type ))
 
     if check_input_dataset( path_dataset, plot_type ) == path_dataset:
-      print("Reading input dataset ...")
+      v_print(V_INFO,"Reading input dataset ...")
 
         # read_input_dataset returns:
         # the max npp pft if SEIB is chosen
@@ -710,7 +734,7 @@ if __name__ == '__main__':
     dataset_01 = full_data_list[0]
     dataset_02 = full_data_list[1]
 
-    print("Trying to calculate the distance from ",dataset_01.inputtype, " to ", dataset_02.inputtype)
+    v_print(V_INFO,"Trying to calculate the distance from ",dataset_01.inputtype, " to ", dataset_02.inputtype)
 
     match dataset_02.inputtype :
 
