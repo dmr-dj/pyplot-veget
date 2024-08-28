@@ -492,8 +492,8 @@ def compare_PFT_weights_NC(dataset1, dataset2, PFT_12_weights):
               if not dataset1.geodata.mask[idx_lon,idx_lat]:
                 try:
                   weigth_value = PFT_12_weights[dataset1.geodata[idx_lon,idx_lat],dataset2.geodata[i,j]]
-                  sum_distance += weigth_value
-                  datasetout[i,j] = weigth_value
+                  sum_distance += int(weigth_value)
+                  datasetout[i,j] = int(weigth_value)
                   count_points += 1
                 except:
                   datasetout[i,j] = -99
@@ -506,7 +506,7 @@ def compare_PFT_weights_NC(dataset1, dataset2, PFT_12_weights):
     #endfor
 
     datasetout = np.ma.masked_where(datasetout<0, datasetout)
-    return sum_distance, datasetout, np.max(PFT_12_weights)*count_points
+    return sum_distance, datasetout, np.max(PFT_12_weights)*int(count_points)
 #enddef
 
 
