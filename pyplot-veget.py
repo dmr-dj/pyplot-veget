@@ -42,20 +42,23 @@ class inputtypes :
   MLRout_plt = "MLRout"
   REVEALS_plt = "reveals"
   ORCHIDEE_plt = "ORCHIDEE"
+  CARAIB_plt = "CARAIB"
 #endclass
 
 known_inputtypes = [
         inputtypes.SEIB_plt,
         inputtypes.MLRout_plt,
         inputtypes.REVEALS_plt,
-        inputtypes.ORCHIDEE_plt
+        inputtypes.ORCHIDEE_plt,
+        inputtypes.CARAIB_plt
         ]
 
 grid_choices  = {
-        inputtypes.SEIB_plt : "0.25",
-        inputtypes.MLRout_plt : "0.25",
-        inputtypes.REVEALS_plt : "0.5",
-        inputtypes.ORCHIDEE_plt : "0.25"
+        inputtypes.SEIB_plt     : "0.25",
+        inputtypes.MLRout_plt   : "0.25",
+        inputtypes.REVEALS_plt  : "1.0",
+        inputtypes.ORCHIDEE_plt : "0.25",
+        inputtypes.CARAIB_plt   : "0.25"
         }
 
 class data_geoEurope :
@@ -117,12 +120,51 @@ pft_color_MLRout = {
     "HPFT"  : "gold"
 }
 
+pft_color_CARAIB = {
+    "C3h" : "bisque",
+    "C3d" : "bisque",
+    "C4" : "gold",
+    "BSg artic shrubs" : "lightcyan",
+    "BSg B/Te cold shrubs" : "paleturquoise",
+    "BSg Te warm shrubs" : "orange",
+    "BEg B/Te cold shrubs" : "paleturquoise",
+    "BEg Te warm shrubs" : "orange",
+    "BEg xeric shrubs" : "blue",
+    "Subdesertic shrubs" : "coral",
+    "Tr Shrubs" : "black",
+    "NEg B/Te cold trees" : "darkgreen",
+    "NEg Te cool trees" : "yellowgreen",
+    "NEg sMed trees" : "olive",
+    "NEg mMed trees" : "olive",
+    "NEg subTr trees" : "brown",
+    "NSg B/Te cold trees" : "darkred",
+    "NSg subTr swamp trees" : "brown",
+    "BEg mMed trees" : "olive",
+    "BEg tMed trees" : "olive",
+    "BEg subTr trees" : "brown",
+    "BSg B/Te cold trees" : "lightskyblue",
+    "BSg Te cool trees" : "lime",
+    "BSg Te warm trees" : "orange",
+    "TrBRg" : "red",
+    "TrBEg" : "red",
+    "TeNEg" : "yellowgreen",
+    "Med."  : "olive",
+    "TeBSg" : "lime",
+    "BNEg"  : "darkgreen",
+    "BNSg" : "darkred",
+    "BBSg" : "lightskyblue",
+    "C3"    : "bisque",
+    "C4"    : "gold",
+    "HPFT"  : "gold",
+    "DES"   : "yellow"
+                    }
 
 PFT_color_choices = {
-        inputtypes.SEIB_plt : pft_color_SEIB,
-        inputtypes.ORCHIDEE_plt : pft_color_ORCHIDEE,
-        inputtypes.MLRout_plt : pft_color_MLRout,
-        inputtypes.REVEALS_plt : pft_color_SEIB
+        inputtypes.SEIB_plt    : pft_color_SEIB,
+        inputtypes.ORCHIDEE_plt: pft_color_ORCHIDEE,
+        inputtypes.MLRout_plt  : pft_color_MLRout,
+        inputtypes.REVEALS_plt : pft_color_SEIB,
+        inputtypes.CARAIB_plt  : pft_color_CARAIB
         }
 
 
@@ -134,11 +176,24 @@ PFT_list_ORCHIDEE = ["solnu", "TrEg","TrSg","TeNEg","TeBEg","TeBSg"
                     ,"BNEg","BBSg","BNSg","TeC3","TrC3","BC4"]
 PFT_list_MLRout = None
 
+PFT_list_CARAIB = ["C3h","C3d","C4","BSg artic shrubs",                   # 4
+                   "BSg B/Te cold shrubs","BSg Te warm shrubs",           # 6
+                   "BEg B/Te cold shrubs","BEg Te warm shrubs",           # 8
+                   "BEg xeric shrubs","Subdesertic shrubs",               # 10
+                   "Tr Shrubs","NEg B/Te cold trees","NEg Te cool trees", # 13
+                   "NEg sMed trees","NEg mMed trees","NEg subTr trees",   # 16
+                   "NSg B/Te cold trees","NSg subTr swamp trees",         # 18
+                   "BEg mMed trees","BEg tMed trees","BEg subTr trees",   # 21
+                   "BSg B/Te cold trees","BSg Te cool trees",             # 23
+                   "BSg Te warm trees","TrBRg","TrBEg"                    # 26
+                   ]
+
 PFT_list_choices = {
-        inputtypes.SEIB_plt : PFT_list_SEIB,
+        inputtypes.SEIB_plt     : PFT_list_SEIB,
         inputtypes.ORCHIDEE_plt : PFT_list_ORCHIDEE,
-        inputtypes.MLRout_plt : PFT_list_MLRout,
-        inputtypes.REVEALS_plt : PFT_list_reveals
+        inputtypes.MLRout_plt   : PFT_list_MLRout,
+        inputtypes.REVEALS_plt  : PFT_list_reveals,
+        inputtypes.CARAIB_plt   : PFT_list_CARAIB
         }
 
 # Utilities functions ...
@@ -406,16 +461,19 @@ def check_input_dataset( input_dataset, plot_type ):
         if os.path.isdir(os.path.dirname(input_dataset)):
            return input_dataset
         #endif
+      #endcase
 
       # REVEALS type need a csv file as input / MLRout as well
-      case inputtypes.REVEALS_plt | inputtypes.MLRout_plt | inputtypes.ORCHIDEE_plt :
+      case inputtypes.REVEALS_plt | inputtypes.MLRout_plt | inputtypes.ORCHIDEE_plt | inputtypes.CARAIB_plt :
         if os.path.isfile(input_dataset):
            return input_dataset
         #endif
+      #endcase
 
       case _:
         return None
-      #
+      #endcase
+
   #endmatch
 
 #enddef check_input_dataset
@@ -522,6 +580,27 @@ def read_input_dataset( path_dataset, plot_type, pft_dict, data_map ):
     # Can be plotted with a simple map_dataflt below
 
     return data_array
+
+  elif plot_type == inputtypes.CARAIB_plt:
+
+    dataPLOT = pd.read_csv(path_dataset)
+    n_pft = len(pft_dict)
+    grid_toPLOT = np.zeros(data_map.shape+(n_pft,))-1.0
+
+    for indx in range(dataPLOT.shape[0]):
+        gotten_lon = dataPLOT.LonDD.values[indx]
+        if gotten_lon >= 180.0:
+            gotten_lon -= 360.0
+        #endif
+        indx_lat = find_closest(lats_array[0,:],dataPLOT.LatDD.values[indx])
+        indx_lon = find_closest(lons_array[:,0],gotten_lon)
+        grid_toPLOT[indx_lon, indx_lat,:] = dataPLOT.values[indx,2:]
+    #endfor
+
+    # ~ data_toPlot = np.ma.where(grid_toPLOT[:,:,-1] < 100.0,np.ma.masked, grid_toPLOT[:,:,0:n_pft].argmax(axis=-1))
+    data_toPlot = grid_toPLOT[:,:,0:n_pft].argmax(axis=-1)
+
+    return data_toPlot
 
   elif plot_type == inputtypes.ORCHIDEE_plt:
 
@@ -719,6 +798,12 @@ if __name__ == '__main__':
       map_dataflt(np.ma.masked_less(np.ma.where(to_plot.lndmsk.T[:,::-1]>0,to_plot.geodata,-1),0)
                  ,to_plot.lons,to_plot.lats,os.path.basename(to_plot.path),"[1]"
                  , cmap="BrBG", masklmt=-5.0
+                 )
+    elif to_plot.inputtype == inputtypes.CARAIB_plt:
+      map_dataint(np.ma.masked_less(np.ma.where(to_plot.lndmsk.T[:,::-1]>0,to_plot.geodata,-1),0)
+                 ,to_plot.lons,to_plot.lats,to_plot.path
+                 ,"PFT name", colorlist=[pft_color_dict[pft] for pft in to_plot.pftdict]
+                 , labels=to_plot.pftdict
                  )
     else:
       map_dataint(to_plot.geodata,to_plot.lons,to_plot.lats,to_plot.path
