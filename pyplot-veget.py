@@ -586,8 +586,6 @@ def get_PFT_weights(data01,data02):
     PFT_list02 = data02.pftdict
 
     if exists01 | exists02:
-        # Handle the reading of the file ...
-       PFT_weights_SEIB_reveals = np.zeros((len(PFT_list01),len(PFT_list02)),dtype=int)
        if exists01:
            PFT_weights = pd.read_csv(file01)
        else:
@@ -597,6 +595,21 @@ def get_PFT_weights(data01,data02):
     else:
         # No weights file / break / raise exception?
         PFT_weights_read = None
+    #endif
+
+    print("Check consistency ::")
+    print("Dataset 01 :: "+dataplottype01)
+    print("PFTs nb & list:", len(PFT_list01))
+    print(PFT_list01)
+    print("===================")
+    print("Dataset 02 :: "+dataplottype02)
+    print("PFTs nb & list:", len(PFT_list02))
+    print(PFT_list02)
+    print("===================")
+    print("Weights table:", PFT_weights_read.shape)
+
+    if ( not PFT_weights_read.shape[0] == len(PFT_list01) ) or ( not PFT_weights_read.shape[1] == len(PFT_list02) ):
+        raise IndexError('PFT shapes in base list and weights table do not conform')
     #endif
 
     return PFT_weights_read
@@ -697,10 +710,12 @@ if __name__ == '__main__':
     dataset_01 = full_data_list[0]
     dataset_02 = full_data_list[1]
 
+    print("Trying to calculate the distance from ",dataset_01.inputtype, " to ", dataset_02.inputtype)
+
     match dataset_02.inputtype :
 
         case inputtypes.SEIB_plt | inputtypes.ORCHIDEE_plt :
-            PFT_weights_toUse = get_PFT_weights(dataset01, dataset_02)
+            PFT_weights_toUse = get_PFT_weights(dataset_01, dataset_02)
             distance_value, distance_map, distance_max = compare_PFT_weights_NC(dataset_01, dataset_02, PFT_weights_toUse)
         #endcase
 
