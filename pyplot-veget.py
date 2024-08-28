@@ -367,6 +367,8 @@ def load_grid_latlon_EU (grid_spacing="0.25", lndmask=True):
           lat_init=33.5
           lon_init=-14.5
 
+          lndmask = False
+
         case _:
           pass
 
@@ -389,7 +391,7 @@ def load_grid_latlon_EU (grid_spacing="0.25", lndmask=True):
       landmask = mask.values[72:228,664:920]    # Why are these integers there? Should not be OK with non 0.25 grid I think 2024-08-20
       return n_lats, n_lons, lats_array, lons_array, lat_init, lon_init, step_per_degree, landmask
     else:
-      return n_lats, n_lons, lats_array, lons_array, lat_init, lon_init, step_per_degree
+      return n_lats, n_lons, lats_array, lons_array, lat_init, lon_init, step_per_degree, None
     #endif
 
 #enddef load_grid_latlon_EU
