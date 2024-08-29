@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
 # vim: set fileencoding=utf-8 :
 
 __author__     = "Didier M. Roche, Isabeau Bertrix, Mathis Voisin"
@@ -20,15 +20,7 @@ import netCDF4 as n4
 import pandas as pd
 import ast
 
-
-# For plotting
-# ~ import matplotlib.pyplot as plt
-# ~ import cartopy.crs as ccrs
-# ~ from matplotlib import colors
-
 from map_data import *
-
-
 
 # Generic definitions
 # ===================
@@ -91,9 +83,6 @@ with open('inputdata/PFT_color_scheme.txt') as f:
 #endwith
 
 PFTs_color_NAMES = ast.literal_eval(data)
-
-
-
 
 
 
@@ -361,7 +350,7 @@ def read_input_dataset( path_dataset, plot_type, pft_dict, data_map ):
 
     dataPLOT = pd.read_csv(path_dataset)
     n_pft = len(pft_dict)
-    grid_toPLOT = np.zeros(data_map.shape+(n_pft,))-1.0
+    grid_toPLOT = np.ma.zeros(data_map.shape+(n_pft,))-1.0
 
     for indx in range(dataPLOT.shape[0]):
         gotten_lon = dataPLOT.LonDD.values[indx]
@@ -373,8 +362,11 @@ def read_input_dataset( path_dataset, plot_type, pft_dict, data_map ):
         grid_toPLOT[indx_lon, indx_lat,:] = dataPLOT.values[indx,2:]
     #endfor
 
-    # ~ data_toPlot = np.ma.where(grid_toPLOT[:,:,-1] < 100.0,np.ma.masked, grid_toPLOT[:,:,0:n_pft].argmax(axis=-1))
-    data_toPlot = grid_toPLOT[:,:,0:n_pft].argmax(axis=-1)
+    # ~ masked_data_PLOT = np.ma.where(grid_toPLOT < 0, np.ma.masked, grid_toPLOT)
+
+    data_toPlot = np.ma.where(grid_toPLOT[:,:,-1] < 0,np.ma.masked, grid_toPLOT[:,:,0:n_pft].argmax(axis=-1))
+    # ~ data_toPlot = masked_data_PLOT[:,:,0:n_pft].argmax(axis=-1)
+
 
     return data_toPlot
 
@@ -578,6 +570,7 @@ if __name__ == '__main__':
                  , cmap="BrBG", masklmt=-5.0
                  )
     elif to_plot.inputtype == inputtypes.CARAIB_plt:
+
       map_dataint(np.ma.masked_less(np.ma.where(to_plot.lndmsk.T[:,::-1]>0,to_plot.geodata,-1),0)
                  ,to_plot.lons,to_plot.lats,to_plot.path
                  ,"PFT name", colorlist=[pft_color_dict[pft] for pft in to_plot.pftdict]
@@ -591,6 +584,9 @@ if __name__ == '__main__':
     #endif
 
   # endfor
+
+
+  # Section to compute the distance between the two datasets ...
 
   if got_args.substract_flg:
 

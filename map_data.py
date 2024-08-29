@@ -1,11 +1,11 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
 # vim: set fileencoding=utf-8 :
 
-__author__     = "Didier M. Roche, Isabeau Bertrix, Mathis Voisin"
+__author__     = "Didier M. Roche, Isabeau Bertrix, Mathis Voisin, Jean-Yves Peterschmitt"
 __copyright__  = "Copyright 2024, HIVE project"
 __credits__    = ["Jean-Yves Peterschmitt"]
 __license__    = "Apache-2.0"
-__version__    = "0.1"
+__version__    = "0.2"
 __maintainer__ = "Didier M. Roche"
 __email__      = "didier.roche@lsce.ipsl.fr"
 __status__     = "Development"
@@ -18,7 +18,7 @@ import numpy as np
 # For plotting
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
-from matplotlib import colors
+import matplotlib as mpl
 
 def map_dataint(var_map, lons, lats, title, legend_label, colorlist,
                 out_file=False, labels=None, extent = [-14, 50, 33, 72] ):
@@ -42,8 +42,56 @@ def map_dataint(var_map, lons, lats, title, legend_label, colorlist,
     max_bounds = round(np.max(var_map))
     nbs_bounds = round(max_bounds - min_bounds) +1
 
+    # We only keep the values that are expressed on the map (and non-masked)
+    pft_list = np.unique(var_map.compressed()).tolist()
+    nb_pft = len(pft_list)
+
+    # Colorbar version jyp
+    # ====================
+
+    # Prepare the 'listed colormap' and the associated 'norm'
+    cmap_col_list = []
+    cmap_bounds_list = []
+    pft_cb_labels_list = []
+
+    for pft_value in pft_list:
+      # ~ current_pft = pft_dic[pft_value]
+      # ~ cmap_col_list.append(current_pft[0])
+      cmap_col_list.append(colorlist[pft_value])
+      cmap_bounds_list.append(pft_value - 0.5)
+      # ~ pft_cb_labels_list.append(current_pft[1])
+      pft_cb_labels_list.append(labels[pft_value])
+    #endfor
+
+    # We need one more bound than we have PFTs
+    cmap_bounds_list.append(pft_value + 0.5)
+
+    # Prepare a nice list of tickmarks to use on the colorbar, taking into
+    # account the fact that the intervals may not all have the same
+    # length, but we want the tickmarks in the MIDDLE of the intervals!
+    pft_cb_ticks_list = []
+    for idx in range(nb_pft):
+        pft_cb_ticks_list.append((cmap_bounds_list[idx] + cmap_bounds_list[idx+1])/2.)
+    #endfor
+
+    # Prepare a colormap, and its associated 'norm'
+    pft_cmap = mpl.colors.ListedColormap(cmap_col_list)
+
+    # Use the following if you want to specify a color where we have
+    # missing/masked values
+    # pft_cmap.set_bad('0.7')
+    # pft_cmap.set_bad('aliceblue')
+
+    pft_norm = mpl.colors.BoundaryNorm(boundaries=cmap_bounds_list,
+                                   ncolors=nb_pft)
+
+
+    # End colorbar version jyp
+    # ========================
+
+
     fix_bounds = np.linspace(min_bounds, max_bounds, nbs_bounds)
-    cmap = colors.ListedColormap(colorlist[min_bounds:max_bounds+1])
+    cmap = mpl.colors.ListedColormap(colorlist[min_bounds:max_bounds+1])
 
     fig, ax = plt.subplots(figsize=(10,5), subplot_kw=dict(projection=crs))
     ax.set_title(title)
@@ -52,14 +100,28 @@ def map_dataint(var_map, lons, lats, title, legend_label, colorlist,
     ax.gridlines()
 
     # ~ v_print(V_WARN,"Bounds in map_dataint: ",min_bounds, max_bounds, nbs_bounds)
-    mesh = ax.pcolormesh(lons, lats, var_map, cmap=cmap, transform=crs,
-                          vmin=min_bounds-0.5, vmax=max_bounds+0.5)
+    # ~ mesh = ax.pcolormesh(lons, lats, var_map, cmap=cmap, transform=crs,
+                          # ~ vmin=min_bounds-0.5, vmax=max_bounds+0.5)
+    mesh = ax.pcolormesh(lons, lats, var_map,
+                         cmap=pft_cmap,
+                         norm=pft_norm,
+                         transform=crs)
 
-    cbar = plt.colorbar(mesh, orientation='vertical', shrink=0.61,
-                        label=legend_label,ticks=fix_bounds)
+    # ~ cbar = plt.colorbar(mesh, orientation='vertical', shrink=0.61,
+                        # ~ label=legend_label,ticks=fix_bounds)
+    cbar = plt.colorbar(mesh,
+                       orientation='vertical',
+                       shrink=0.61,
+                       label=legend_label,
+                       boundaries=cmap_bounds_list,
+                       drawedges=True,
+                       ticks=pft_cb_ticks_list,
+                       spacing='uniform'
+                       )
+    cbar.set_ticklabels(pft_cb_labels_list)
 
-    if labels != None:
-        cbar.ax.set_yticklabels(labels[round(min_bounds):round(max_bounds)+1])
+    # ~ if labels != None:
+        # ~ cbar.ax.set_yticklabels(labels[round(min_bounds):round(max_bounds)+1])
 
     ax.gridlines()
     ax.coastlines()
