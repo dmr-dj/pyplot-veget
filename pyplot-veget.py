@@ -18,6 +18,8 @@ import argparse
 import numpy as np
 import netCDF4 as n4
 import pandas as pd
+import ast
+
 
 # For plotting
 # ~ import matplotlib.pyplot as plt
@@ -25,6 +27,8 @@ import pandas as pd
 # ~ from matplotlib import colors
 
 from map_data import *
+
+
 
 # Generic definitions
 # ===================
@@ -82,92 +86,15 @@ class data_geoEurope :
 
 # Define the correspondance between PFT names and colors
 
-pft_color_SEIB = {
-    "TeNEg" : "yellowgreen",
-    "Med."  : "olive",
-    "TeBSg" : "lime",
-    "BNEg"  : "darkgreen",
-    "BNSg"  : "darkred",
-    "BBSg"  : "lightskyblue",
-    "C3"    : "bisque",
-    "C4"    : "gold",
-    "HPFT"  : "gold",
-    "DES"   : "yellow"
-}
+with open('inputdata/PFT_color_scheme.txt') as f:
+    data = f.read()
+#endwith
 
-pft_color_ORCHIDEE = {
-    "solnu" : "black",
-    "TrEg"  : "red",
-    "TrSg"  : "darkred",
-    "TeNEg" : "yellowgreen",
-    "TeBEg" : "olive",
-    "TeBSg" : "lime",
-    "BNEg"  : "darkgreen",
-    "BBSg"  : "lightskyblue",
-    "BNSg"  : "darkred",
-    "TeC3"  : "bisque",
-    "TrC3"  : "gold",
-    "BC4"   : "orange"
-}
+PFTs_color_NAMES = ast.literal_eval(data)
 
-pft_color_MLRout = {
-    "TeNEg" : "yellowgreen",
-    "Med."  : "olive",
-    "TeBSg" : "lime",
-    "BNEg"  : "darkgreen",
-    "BNSg"  : "darkred",
-    "BBSg"  : "lightskyblue",
-    "C3"    : "bisque",
-    "C4"    : "gold",
-    "HPFT"  : "gold"
-}
 
-pft_color_CARAIB = {
-    "C3h" : "bisque",
-    "C3d" : "bisque",
-    "C4" : "gold",
-    "BSg artic shrubs" : "lightcyan",
-    "BSg B/Te cold shrubs" : "paleturquoise",
-    "BSg Te warm shrubs" : "orange",
-    "BEg B/Te cold shrubs" : "paleturquoise",
-    "BEg Te warm shrubs" : "orange",
-    "BEg xeric shrubs" : "blue",
-    "Subdesertic shrubs" : "coral",
-    "Tr Shrubs" : "black",
-    "NEg B/Te cold trees" : "darkgreen",
-    "NEg Te cool trees" : "yellowgreen",
-    "NEg sMed trees" : "olive",
-    "NEg mMed trees" : "olive",
-    "NEg subTr trees" : "brown",
-    "NSg B/Te cold trees" : "darkred",
-    "NSg subTr swamp trees" : "brown",
-    "BEg mMed trees" : "olive",
-    "BEg tMed trees" : "olive",
-    "BEg subTr trees" : "brown",
-    "BSg B/Te cold trees" : "lightskyblue",
-    "BSg Te cool trees" : "lime",
-    "BSg Te warm trees" : "orange",
-    "TrBRg" : "red",
-    "TrBEg" : "red",
-    "TeNEg" : "yellowgreen",
-    "Med."  : "olive",
-    "TeBSg" : "lime",
-    "BNEg"  : "darkgreen",
-    "BNSg" : "darkred",
-    "BBSg" : "lightskyblue",
-    "C3"    : "bisque",
-    "C4"    : "gold",
-    "HPFT"  : "gold",
-    "DES"   : "yellow"
-                    }
 
-PFT_color_choices = {
-        inputtypes.SEIB_plt    : pft_color_SEIB,
-        inputtypes.ORCHIDEE_plt: pft_color_ORCHIDEE,
-        inputtypes.MLRout_plt  : pft_color_MLRout,
-        inputtypes.REVEALS_plt : pft_color_SEIB,
-        inputtypes.CARAIB_plt  : pft_color_CARAIB
-        }
+
 
 
 PFT_list_SEIB =     ["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg"
@@ -642,7 +569,9 @@ if __name__ == '__main__':
 
     to_plot = full_data_list[nb_data]
 
-    pft_color_dict = PFT_color_choices[to_plot.inputtype]
+    # ~ pft_color_dict = PFT_color_choices[to_plot.inputtype]
+    pft_color_dict = PFTs_color_NAMES
+
     if to_plot.inputtype == inputtypes.MLRout_plt:
       map_dataflt(np.ma.masked_less(np.ma.where(to_plot.lndmsk.T[:,::-1]>0,to_plot.geodata,-1),0)
                  ,to_plot.lons,to_plot.lats,os.path.basename(to_plot.path),"[1]"
