@@ -5,7 +5,7 @@ __author__     = "Didier M. Roche, Isabeau Bertrix, Mathis Voisin, Jean-Yves Pet
 __copyright__  = "Copyright 2024, HIVE project"
 __credits__    = ["Jean-Yves Peterschmitt"]
 __license__    = "Apache-2.0"
-__version__    = "0.2"
+__version__    = "0.3"
 __maintainer__ = "Didier M. Roche"
 __email__      = "didier.roche@lsce.ipsl.fr"
 __status__     = "Development"
@@ -20,7 +20,21 @@ import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 import matplotlib as mpl
 
-def map_dataint(var_map, lons, lats, title, legend_label, colorlist,
+# Got this one from https://gist.github.com/jakevdp/91077b0cae40f8f8244a
+def discrete_cmap(N, base_cmap=None):
+    """Create an N-bin discrete colormap from the specified input map"""
+
+    # Note that if base_cmap is a string or None, you can simply do
+    #    return plt.cm.get_cmap(base_cmap, N)
+    # The following works for string, None, or a colormap instance:
+
+    base = plt.cm.get_cmap(base_cmap)
+    color_list = base(np.linspace(0, 1, N))
+    cmap_name = base.name + str(N)
+    return base.from_list(cmap_name, color_list, N)
+#enddef discrete_cmap
+
+def map_dataintPFT(var_map, lons, lats, title, legend_label, colorlist,
                 out_file=False, labels=None, extent = [-14, 50, 33, 72] ):
 
     """Generates a map of output data from `get_var` function plotted as categories.
@@ -38,9 +52,9 @@ def map_dataint(var_map, lons, lats, title, legend_label, colorlist,
     """
 
     crs = ccrs.PlateCarree()
-    min_bounds = round(np.min(var_map))
-    max_bounds = round(np.max(var_map))
-    nbs_bounds = round(max_bounds - min_bounds) +1
+    # ~ min_bounds = round(np.min(var_map))
+    # ~ max_bounds = round(np.max(var_map))
+    # ~ nbs_bounds = round(max_bounds - min_bounds) +1
 
     # We only keep the values that are expressed on the map (and non-masked)
     pft_list = np.unique(var_map.compressed()).tolist()
@@ -90,8 +104,8 @@ def map_dataint(var_map, lons, lats, title, legend_label, colorlist,
     # ========================
 
 
-    fix_bounds = np.linspace(min_bounds, max_bounds, nbs_bounds)
-    cmap = mpl.colors.ListedColormap(colorlist[min_bounds:max_bounds+1])
+    # ~ fix_bounds = np.linspace(min_bounds, max_bounds, nbs_bounds)
+    # ~ cmap = mpl.colors.ListedColormap(colorlist[min_bounds:max_bounds+1])
 
     fig, ax = plt.subplots(figsize=(10,5), subplot_kw=dict(projection=crs))
     ax.set_title(title)
@@ -131,7 +145,67 @@ def map_dataint(var_map, lons, lats, title, legend_label, colorlist,
         fig.savefig(out_file)
 
 
-#enddef
+#enddef map_dataintPFT
+
+def map_dataint(var_map, lons, lats, title, legend_label, colorlist=None,
+                out_file=False, labels=None, extent = [-14, 50, 33, 72], cmap='viridis' ):
+
+    """Generates a map of output data from `get_var` function plotted as categories.
+    Keyword arguments:
+    var_plot -- a masked array of the data. This must be 2-dimensions (lat, lon).
+    lons -- a masked array of longitude values.
+    lats -- a masked array of latitude values.
+    title -- figure title for the map.
+    legend_label -- label for the map's colorbar.
+    colorlist -- a color list to create a colormap from (if None, use linear viridis segmented)
+    out_file -- optional filepath to save the output image (default False).
+    labels -- a series of discrete labels matching the numbers of colors to be used
+    extent -- limits the extent in lat/lon of the figure (default values are Europe)
+    """
+
+    crs = ccrs.PlateCarree()
+    min_bounds = round(np.min(var_map))
+    max_bounds = round(np.max(var_map))
+    nbs_bounds = round(max_bounds - min_bounds) +1
+
+    fix_bounds = np.linspace(min_bounds, max_bounds, nbs_bounds)
+
+    if colorlist != None:
+      if len(colorlist)<nbs_bounds:
+         raise ValueError( "Colorlist provided is too short for the number of values to plot = "+str(nbs_bounds) )
+       #endif
+      cmap = mpl.colors.ListedColormap(colorlist[0:nbs_bounds+1])
+    elif cmap:
+      cmap = discrete_cmap(nbs_bounds,base_cmap=cmap)
+    #endif
+
+    cmap.set_under(color="grey")
+
+    fig, ax = plt.subplots(figsize=(10,5), subplot_kw=dict(projection=crs))
+    ax.set_title(title)
+    ax.set_global()
+    ax.set_extent(extent)
+    ax.gridlines()
+
+    # ~ v_print(V_WARN,"Bounds in map_dataint: ",min_bounds, max_bounds, nbs_bounds)
+    mesh = ax.pcolormesh(lons, lats, var_map, cmap=cmap, transform=crs,
+                          vmin=min_bounds-0.5, vmax=max_bounds+0.5)
+
+    cbar = plt.colorbar(mesh, orientation='vertical', shrink=0.61,
+                        label=legend_label,ticks=fix_bounds,extend='min')
+
+
+    if labels != None:
+        cbar.ax.set_yticklabels(labels[round(min_bounds):round(max_bounds)+1])
+
+    ax.gridlines()
+    ax.coastlines()
+    fig.show()
+
+    if out_file:
+        fig.savefig(out_file)
+
+#enddef map_dataint
 
 def map_dataflt(var_map, lons, lats, title, legend_label, cmap='viridis',
                 out_file=False, extent = [-14, 50, 33, 72], masklmt=0.0 ):
@@ -233,4 +307,4 @@ def plot_barsInLON_int(colorlist,llat,llon1,llon2,lats_array,lons_array
   #enddif
 #enddef
 
-
+# The End of All Things (op. cit.)

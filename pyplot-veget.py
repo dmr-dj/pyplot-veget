@@ -5,7 +5,7 @@ __author__     = "Didier M. Roche, Isabeau Bertrix, Mathis Voisin"
 __copyright__  = "Copyright 2024, HIVE project"
 __credits__    = ["Jean-Yves Peterschmitt"]
 __license__    = "Apache-2.0"
-__version__    = "0.7"
+__version__    = "0.7.5"
 __maintainer__ = "Didier M. Roche"
 __email__      = "didier.roche@lsce.ipsl.fr"
 __status__     = "Development"
@@ -244,8 +244,12 @@ def check_input_dataset( input_dataset, plot_type ):
 #enddef check_input_dataset
 
 
-def read_input_dataset( path_dataset, plot_type, pft_dict, data_map ):
+def read_input_dataset_PFTNPP( path_dataset, plot_type, pft_dict, data_map ):
 
+
+  # [MOD] returns now the PFTs instead of dominant PFT
+
+  # SEIB -type of file // directory with a bunch of files. Reads them as out_npppft*
   if plot_type == inputtypes.SEIB_plt:
 
     # the typical output of SEIB used is a list of out_npppft[NN].txt file
@@ -274,26 +278,30 @@ def read_input_dataset( path_dataset, plot_type, pft_dict, data_map ):
 
     # here data_array contains the lons, lats, pft_typ, of % of NPP
 
-    # Retreiving the PFT number of maximum NPP production
-    data_to_Plot_value = data_array.argmax(axis=-1)
+    # ~ # Retreiving the PFT number of maximum NPP production
+    # ~ data_to_Plot_value = data_array.argmax(axis=-1)
 
     # data_to_Plot_value contains the PFT number with maximum NPP production
 
     # ~ # Sepcifying the data that needs to be written out
     # ~ data_to_wrt_valueS = data_array
 
-    # Specific case handling when the artificial desert is set (absence of npp)
-    if pft_dict[-1] == "DES":
-      seuil_desert = 0.01
-      # Keeping only values above the desertic threshold, if below set as PFT 8 (DESERT)
-      data_to_Plot_value = np.ma.where(sum_array < seuil_desert,8,data_to_Plot_value)
-      pft_dict_noDES = pft_dict[:-1]
-    else: # no desert is required
-      pft_dict_noDES = pft_dict
-    #fi
+    # ~ # Specific case handling when the artificial desert is set (absence of npp)
+    # ~ if pft_dict[-1] == "DES":
+      # ~ seuil_desert = 0.01
+      # ~ # Keeping only values above the desertic threshold, if below set as PFT 8 (DESERT)
+      # ~ data_to_Plot_value = np.ma.where(sum_array < seuil_desert,8,data_to_Plot_value)
+      # ~ pft_dict_noDES = pft_dict[:-1]
+    # ~ else: # no desert is required
+      # ~ pft_dict_noDES = pft_dict
+    # ~ #fi
+
+    data_toPlot = np.ma.zeros((data_array.shape),)
 
     # Masking correctly the data with the landmask
-    data_toPlot = np.ma.masked_less(np.ma.where(landmask.T[:,::-1]>0,data_to_Plot_value,-1),0)
+    for pft in range(data_array.shape[-1]):
+        data_toPlot[:,:,pft] = np.ma.masked_less(np.ma.where(landmask.T[:,::-1]>0,data_array[:,:,pft],-1),0)
+    #endfor
 
     # ~ # Preparing the data for the bar plotting if needed
     # ~ titleforPlot=path_dataset
@@ -382,13 +390,15 @@ def read_input_dataset( path_dataset, plot_type, pft_dict, data_map ):
       remap_fracveg[:,:,i] = vegfrc[i,::-1,:].T
     #endfor
 
-    var_to_PLOT = np.ma.masked_less_equal(remap_fracveg.argmax(axis=-1),0)
+    var_to_PLOT = np.ma.masked_less_equal(remap_fracveg,0)
+    # ~ var_to_PLOT = np.ma.masked_less_equal(remap_fracveg.argmax(axis=-1),0)
+    # ~ var_to_PLOT = np.ma.count(np.ma.masked_less_equal(remap_fracveg,150),axis=-1)
 
-    return var_to_PLOT
+    return var_to_PLOT # npp by PFT
 
   #endif
 
-#enddef read_input_dataset
+#enddef read_input_dataset_PFTNPP
 
 
 # Non Contiguous is dataset2 ...
@@ -546,7 +556,7 @@ if __name__ == '__main__':
         # read_input_dataset returns:
         # the max npp pft if SEIB is chosen
 
-      data_toPlot = read_input_dataset( path_dataset, plot_type, pft_list, data_array )
+      data_toPlot = read_input_dataset_PFTNPP( path_dataset, plot_type, pft_list, data_array )
     #endif
 
     # Add the data thus obtained in the data list containing all datasets ...
@@ -577,9 +587,25 @@ if __name__ == '__main__':
                  , labels=to_plot.pftdict
                  )
     else:
-      map_dataint(to_plot.geodata,to_plot.lons,to_plot.lats,to_plot.path
+
+      # Plotting the dominant PFR
+
+      data_dominantPFT = to_plot.geodata[:,:,0:n_pft].argmax(axis=-1)
+      data_dominantPFT = np.ma.masked_less(np.ma.where(to_plot.lndmsk.T[:,::-1]>0,data_dominantPFT,-1),0)
+
+      map_dataintPFT(data_dominantPFT,to_plot.lons,to_plot.lats,to_plot.path
                  ,"PFT name", colorlist=[pft_color_dict[pft] for pft in to_plot.pftdict]
                  , labels=to_plot.pftdict
+                 )
+
+      # Plotting the NB_of dominant PFT
+      limit_npp = 0.05
+      data_not_masked = np.ma.count(np.ma.masked_less_equal(to_plot.geodata,limit_npp),axis=-1)
+      # ~ data_toPlot = np.ma.masked_less_equal(data_not_masked,0)
+      data_toPlotnbdominant = np.ma.masked_values(data_not_masked,0)
+
+      map_dataint(data_toPlotnbdominant,to_plot.lons,to_plot.lats,to_plot.path,"limit="+str(limit_npp)
+                 , colorlist=["darkgreen","bisque","coral","darkred","black"]
                  )
     #endif
 
