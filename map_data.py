@@ -19,6 +19,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 import matplotlib as mpl
+import matplotlib.colors as mcolors
+
+# For randomization
+import random
 
 # Got this one from https://gist.github.com/jakevdp/91077b0cae40f8f8244a
 def discrete_cmap(N, base_cmap=None):
@@ -33,6 +37,10 @@ def discrete_cmap(N, base_cmap=None):
     cmap_name = base.name + str(N)
     return base.from_list(cmap_name, color_list, N)
 #enddef discrete_cmap
+
+def gen_list_colors(N):
+    return [ random.choice(list(mcolors.CSS4_COLORS.keys())) for i in range(N) ]
+#enddef gen_list_colors
 
 def map_dataintPFT(var_map, lons, lats, title, legend_label, colorlist,
                 out_file=False, labels=None, extent = [-14, 50, 33, 72] ):
@@ -172,7 +180,8 @@ def map_dataint(var_map, lons, lats, title, legend_label, colorlist=None,
 
     if colorlist != None:
       if len(colorlist)<nbs_bounds:
-         raise ValueError( "Colorlist provided is too short for the number of values to plot = "+str(nbs_bounds) )
+         #raise ValueError( "Colorlist provided is too short for the number of values to plot = "+str(nbs_bounds) )
+         colorlist = gen_list_colors(nbs_bounds)
        #endif
       cmap = mpl.colors.ListedColormap(colorlist[0:nbs_bounds])
     elif cmap:

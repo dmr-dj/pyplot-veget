@@ -77,20 +77,20 @@ class data_geoEurope :
     def setdominantIndx(self):
         n_pft = len(self.pftdict)
 
-        print("dominantIndx == ", len(self.geodata.shape), self.geodata.shape[-1], n_pft)
-
+        # Only if last dimension is n_pft (lon,lat,n_pft) and corresponds in size
         if len(self.geodata.shape) == 3 and self.geodata.shape[-1] == n_pft:
           v_print(V_WARN,"Computing dominantIndx")          
-          
-          self.dominantIndx = np.ma.zeros((self.geodata.shape),np.uint8)
-          
+          # Get maximum location (a.k.a. dominantIndx)
+          self.dominantIndx = np.ma.zeros((self.geodata.shape),np.uint8)          
           self.dominantIndx = self.geodata.argmax(axis=-1)
+          # If landmask exists, remask with it (since argmax returns an np array, not np.ma)
           if hasattr(self, "lndmsk"):
             self.dominantIndx = np.ma.masked_less(np.ma.where(self.lndmsk.T[:,::-1]>0,self.dominantIndx,-1),0)
+          # if not, uses the value of maximum as a mask (that is if negative, masked)
           else:
             self.dominantIndx = np.ma.masked_less(np.ma.where(self.geodata.max(axis=-1)>0,self.dominantIndx,-1),0)
           #endif
-        else:
+        else: # if only 2D, set it as dominant, but might be completly wrong
           v_print(V_WARN,"Setting dominantIndx")
           self.dominantIndx = self.geodata
 		#endif			
@@ -164,6 +164,9 @@ def parse_args() -> argparse.Namespace:
                        ,required=False)  # on/off flag
    parser.add_argument('-d', '--desert', dest='desert_flg', action='store_true',
                        help='Add an auto-computed desert pseudo-PFT based on low NPP points'
+                       ,required=False)  # on/off flag
+   parser.add_argument('-l', '--limit_npp', dest='limit_npp_val',type=float,
+                       help='A value to decipher between dominant and non-dominant values of npp for PFTs'
                        ,required=False)  # on/off flag
    parser.add_argument('-v', '--verbosity', action="count",
                        help="increase output verbosity (e.g., -vv is more than -v)")
@@ -438,7 +441,7 @@ def compare_PFT_weights_NC(dataset1, dataset2, PFT_12_weights):
     # Local variables
     sum_distance = 0
     count_points = 0
-    datasetout = np.ma.zeros((dataset2.geodata.shape),np.int32)
+    datasetout = np.ma.zeros((dataset2.geodata.shape),np.uint8)
 
     # dataset2 is the non continuous one, hence looping on it
     for i in range(dataset2.geodata.shape[0]):
@@ -540,6 +543,13 @@ if __name__ == '__main__':
   v_print = _v_print
   # <- End verbosity code ...
 
+  if got_args.limit_npp_val is None:
+     v_print(V_INFO,"Set the default npp_value as limit")
+     limit_npp_value = 0.05     
+  else:
+     limit_npp_value = got_args.limit_npp_val
+  #endif
+  v_print(V_INFO, "limit_npp_value = "+str(limit_npp_value))
   # Looping over the series of inputs (in the form of input_type, path_dataset)
 
   full_data_list = []
@@ -633,12 +643,11 @@ if __name__ == '__main__':
                  )
 
       # Plotting the NB_of dominant PFT
-      limit_npp = 0.05
-      data_not_masked = np.ma.count(np.ma.masked_less_equal(to_plot.geodata,limit_npp),axis=-1)
+      data_not_masked = np.ma.count(np.ma.masked_less_equal(to_plot.geodata,limit_npp_value),axis=-1)
       # ~ data_toPlot = np.ma.masked_less_equal(data_not_masked,0)
       data_toPlotnbdominant = np.ma.masked_values(data_not_masked,0)
 
-      map_dataint(data_toPlotnbdominant,to_plot.lons,to_plot.lats,to_plot.path,"limit="+str(limit_npp)
+      map_dataint(data_toPlotnbdominant,to_plot.lons,to_plot.lats,to_plot.path,"limit="+str(limit_npp_value)
                  , colorlist=["darkgreen","bisque","coral","darkred","black"]
                  )
     #endif
