@@ -7,7 +7,7 @@
     "BBSg"  : "lightskyblue",
     "TeC3"  : "bisque",
     "TrC3"  : "gold",
-    "BC4"   : "orange",
+    "BC3"   : "orange",
     "C3"    : "bisque",
     "C4"    : "gold",
     "HPFT"  : "gold",

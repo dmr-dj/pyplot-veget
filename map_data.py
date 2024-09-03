@@ -174,7 +174,7 @@ def map_dataint(var_map, lons, lats, title, legend_label, colorlist=None,
       if len(colorlist)<nbs_bounds:
          raise ValueError( "Colorlist provided is too short for the number of values to plot = "+str(nbs_bounds) )
        #endif
-      cmap = mpl.colors.ListedColormap(colorlist[0:nbs_bounds+1])
+      cmap = mpl.colors.ListedColormap(colorlist[0:nbs_bounds])
     elif cmap:
       cmap = discrete_cmap(nbs_bounds,base_cmap=cmap)
     #endif

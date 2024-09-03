@@ -69,9 +69,31 @@ class data_geoEurope :
         self.pftdict = pftdict
         self.inputtype = inputtype
     #enddef
-
+    
     def add_lndmsk(self, lndmsk):
         self.lndmsk=lndmsk
+    #enddef
+    
+    def setdominantIndx(self):
+        n_pft = len(self.pftdict)
+
+        print("dominantIndx == ", len(self.geodata.shape), self.geodata.shape[-1], n_pft)
+
+        if len(self.geodata.shape) == 3 and self.geodata.shape[-1] == n_pft:
+          v_print(V_WARN,"Computing dominantIndx")          
+          
+          self.dominantIndx = np.ma.zeros((self.geodata.shape),np.uint8)
+          
+          self.dominantIndx = self.geodata.argmax(axis=-1)
+          if hasattr(self, "lndmsk"):
+            self.dominantIndx = np.ma.masked_less(np.ma.where(self.lndmsk.T[:,::-1]>0,self.dominantIndx,-1),0)
+          else:
+            self.dominantIndx = np.ma.masked_less(np.ma.where(self.geodata.max(axis=-1)>0,self.dominantIndx,-1),0)
+          #endif
+        else:
+          v_print(V_WARN,"Setting dominantIndx")
+          self.dominantIndx = self.geodata
+		#endif			
     #enddef
 
 #endclass
@@ -91,7 +113,7 @@ PFT_list_SEIB =     ["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg"
 PFT_list_reveals =  ["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg"
                     ,"C3"]#, "HPFT"]
 PFT_list_ORCHIDEE = ["solnu", "TrEg","TrSg","TeNEg","TeBEg","TeBSg"
-                    ,"BNEg","BBSg","BNSg","TeC3","TrC3","BC4"]
+                    ,"BNEg","BBSg","BNSg","TeC3","C4","TrC3","BC3"]
 PFT_list_MLRout = None
 
 PFT_list_CARAIB = ["C3h","C3d","C4","BSg artic shrubs",                   # 4
@@ -314,18 +336,27 @@ def read_input_dataset_PFTNPP( path_dataset, plot_type, pft_dict, data_map ):
 
   elif plot_type == inputtypes.REVEALS_plt:
 
+    # For REVEALS, we read something which is not PFTNPP but a % of the cell.
     dataPLOT = pd.read_csv(path_dataset)
     n_pft = len(pft_dict)
     # ~ grid_toPLOT = np.zeros((n_lons,n_lats,n_pft+1)) -1.0
-    grid_toPLOT = np.zeros(data_map.shape+(n_pft+1,))-1.0
+    grid_toPLOT = np.ma.zeros(data_map.shape+(n_pft+1,))-1.0
 
     for indx in range(dataPLOT.shape[0]):
       indx_lat = find_closest(lats_array[0,:],dataPLOT.LatDD.values[indx])
       indx_lon = find_closest(lons_array[:,0],dataPLOT.LonDD.values[indx])
       grid_toPLOT[indx_lon, indx_lat,:] = dataPLOT.values[indx,3:3+n_pft+1]
     #endfor
+   
+    # ~ data_toPlot = np.ma.where(grid_toPLOT[:,:,-1] < 100.0,np.ma.masked, grid_toPLOT[:,:,0:n_pft].argmax(axis=-1))
 
-    data_toPlot = np.ma.where(grid_toPLOT[:,:,-1] < 100.0,np.ma.masked, grid_toPLOT[:,:,0:n_pft].argmax(axis=-1))
+    # ~ data_toPlot = np.ma.masked_less_equal(grid_toPLOT[:,:,0:n_pft],0)
+    # ~ data_toPlot = np.ma.zeros(data_map.shape+(n_pft,))
+    # ~ for i in range(data_toPlot.shape[-1]):
+        # ~ data_toPlot[:,:,i] = np.ma.where(grid_toPLOT[:,:,-1] < 100.0,np.ma.masked, grid_toPLOT[:,:,i])
+    # ~ #endfor
+
+    data_toPlot = grid_toPLOT[:,:,0:n_pft]
 
     return data_toPlot
 
@@ -590,8 +621,11 @@ if __name__ == '__main__':
 
       # Plotting the dominant PFR
 
-      data_dominantPFT = to_plot.geodata[:,:,0:n_pft].argmax(axis=-1)
-      data_dominantPFT = np.ma.masked_less(np.ma.where(to_plot.lndmsk.T[:,::-1]>0,data_dominantPFT,-1),0)
+      # ~ data_dominantPFT = to_plot.geodata[:,:,0:n_pft].argmax(axis=-1)
+      # ~ data_dominantPFT = np.ma.masked_less(np.ma.where(to_plot.lndmsk.T[:,::-1]>0,data_dominantPFT,-1),0)
+
+      to_plot.setdominantIndx()
+      data_dominantPFT = to_plot.dominantIndx
 
       map_dataintPFT(data_dominantPFT,to_plot.lons,to_plot.lats,to_plot.path
                  ,"PFT name", colorlist=[pft_color_dict[pft] for pft in to_plot.pftdict]
