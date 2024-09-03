@@ -201,7 +201,7 @@ def map_dataint(var_map, lons, lats, title, legend_label, colorlist=None,
                           vmin=min_bounds-0.5, vmax=max_bounds+0.5)
 
     cbar = plt.colorbar(mesh, orientation='vertical', shrink=0.61,
-                        label=legend_label,ticks=fix_bounds,extend='min')
+                        label=legend_label,ticks=fix_bounds)
 
 
     if labels != None:

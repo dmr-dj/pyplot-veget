@@ -221,8 +221,8 @@ def load_grid_latlon_EU (grid_spacing="0.25", lndmask=True):
 
     # Set lat/lon according to grid definition
 
-    lons_array = np.zeros((n_lons,n_lats))
-    lats_array = np.zeros((n_lons,n_lats))
+    lons_array = np.zeros((n_lons,n_lats),np.float16)
+    lats_array = np.zeros((n_lons,n_lats),np.float16)
 
     for j in range(n_lons):
       for i in range(n_lats):
@@ -281,7 +281,7 @@ def read_input_dataset_PFTNPP( path_dataset, plot_type, pft_dict, data_map ):
     # Here the list of fichs defines the PFT numbers that will match the above list of PFTs
     list_fichs=["07", "08", "09", "10", "13", "14", "15", "16"]
     # ~ data_array_nm = np.zeros((n_lons,n_lats,len(list_fichs)))-1.0
-    data_array_nm = np.zeros(data_map.shape+(len(list_fichs),))-1.0
+    data_array_nm = np.zeros(data_map.shape+(len(list_fichs),),np.float32)-1.0
 
     # SEIB input is a directory with a list of files, reading up the thing in one big table
     for n_um in list_fichs:
@@ -321,7 +321,7 @@ def read_input_dataset_PFTNPP( path_dataset, plot_type, pft_dict, data_map ):
       # ~ pft_dict_noDES = pft_dict
     # ~ #fi
 
-    data_toPlot = np.ma.zeros((data_array.shape),)
+    data_toPlot = np.ma.zeros((data_array.shape),np.float32)
 
     # Masking correctly the data with the landmask
     for pft in range(data_array.shape[-1]):
@@ -343,7 +343,7 @@ def read_input_dataset_PFTNPP( path_dataset, plot_type, pft_dict, data_map ):
     dataPLOT = pd.read_csv(path_dataset)
     n_pft = len(pft_dict)
     # ~ grid_toPLOT = np.zeros((n_lons,n_lats,n_pft+1)) -1.0
-    grid_toPLOT = np.ma.zeros(data_map.shape+(n_pft+1,))-1.0
+    grid_toPLOT = np.ma.zeros(data_map.shape+(n_pft+1,),np.float16)-1.0
 
     for indx in range(dataPLOT.shape[0]):
       indx_lat = find_closest(lats_array[0,:],dataPLOT.LatDD.values[indx])
@@ -365,7 +365,7 @@ def read_input_dataset_PFTNPP( path_dataset, plot_type, pft_dict, data_map ):
 
   elif plot_type == inputtypes.MLRout_plt:
 
-    data_array = np.zeros(data_map.shape)
+    data_array = np.zeros(data_map.shape,np.float32)
     data_toPLOT = pd.read_csv(path_dataset)
 
     # Assuming that lat and lon are called as such
@@ -392,7 +392,7 @@ def read_input_dataset_PFTNPP( path_dataset, plot_type, pft_dict, data_map ):
 
     dataPLOT = pd.read_csv(path_dataset)
     n_pft = len(pft_dict)
-    grid_toPLOT = np.ma.zeros(data_map.shape+(n_pft,))-1.0
+    grid_toPLOT = np.ma.zeros(data_map.shape+(n_pft,),np.float32)-1.0
 
     for indx in range(dataPLOT.shape[0]):
         gotten_lon = dataPLOT.LonDD.values[indx]
@@ -419,7 +419,7 @@ def read_input_dataset_PFTNPP( path_dataset, plot_type, pft_dict, data_map ):
     vegfrac = dst.variables['vegetfrac'] # Vegetation Fraction, time, nvegtyp, lat,lon
     vegfrc = vegfrac[-1,:,:,:]  # Taking last time step
     # ~ print(" :: ", len(pft_list))
-    remap_fracveg = np.zeros(data_map.shape+(n_pft,))
+    remap_fracveg = np.zeros(data_map.shape+(n_pft,),np.float32)
     for i in range(n_pft):
       remap_fracveg[:,:,i] = vegfrc[i,::-1,:].T
     #endfor
@@ -441,20 +441,20 @@ def compare_PFT_weights_NC(dataset1, dataset2, PFT_12_weights):
     # Local variables
     sum_distance = 0
     count_points = 0
-    datasetout = np.ma.zeros((dataset2.geodata.shape),np.uint8)
+    datasetout = np.ma.zeros((dataset2.dominantIndx.shape),np.int8)
 
     # dataset2 is the non continuous one, hence looping on it
-    for i in range(dataset2.geodata.shape[0]):
-        for j in range(dataset2.geodata.shape[1]):
-            if not dataset2.geodata.mask[i,j]:
+    for i in range(dataset2.dominantIndx.shape[0]):
+        for j in range(dataset2.dominantIndx.shape[1]):
+            if not dataset2.dominantIndx.mask[i,j]:
               llat = dataset2.lats[i,j]
               llon = dataset2.lons[i,j]
 
               idx_lat = find_closest(dataset1.lats[0,:],llat)
               idx_lon = find_closest(dataset1.lons[:,0],llon)
-              if not dataset1.geodata.mask[idx_lon,idx_lat]:
+              if not dataset1.dominantIndx.mask[idx_lon,idx_lat]:
                 try:
-                  weigth_value = PFT_12_weights[dataset1.geodata[idx_lon,idx_lat],dataset2.geodata[i,j]]
+                  weigth_value = PFT_12_weights[dataset1.dominantIndx[idx_lon,idx_lat],dataset2.dominantIndx[i,j]]
                   sum_distance += int(weigth_value)
                   datasetout[i,j] = int(weigth_value)
                   count_points += 1
@@ -585,7 +585,7 @@ if __name__ == '__main__':
     # Loading grid depending on plot_type
     n_lats, n_lons, lats_array, lons_array, lat_init, lon_init, step_per_degree, landmask = load_grid_latlon_EU(grid_spacing=grid_choices[plot_type])
 
-    data_array = np.zeros((n_lons,n_lats)) # Base format for the whole thing: a lat,lon placeholder
+    data_array = np.zeros((n_lons,n_lats),np.float16) # Base format for the whole thing: a lat,lon placeholder
 
 
     # Check the input data format, depending on plot type
