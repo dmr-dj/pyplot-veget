@@ -3,7 +3,7 @@ A series of python script to plot vegetation related fields
 
 ## Helper text as preliminary documentation
 ```
-usage: pyplot-veget.py [-h] -i INPUT_TYPE INPUT_TYPE [-w WRT_OUT_FILEN] [-s] [-d] [-l LIMIT_NPP_VAL] [-v]
+usage: pyplot-veget.py [-h] -i INPUT_TYPE INPUT_TYPE [-w WRT_OUT_FILEN] [-s] [-d] [-l LIMIT_NPP_VAL] [-v] [-m MEAN_VALUE]
 
 options:
   -h, --help            show this help message and exit
@@ -16,6 +16,8 @@ options:
   -l LIMIT_NPP_VAL, --limit_npp LIMIT_NPP_VAL
                         A value to decipher between dominant and non-dominant values of npp for PFTs
   -v, --verbosity       increase output verbosity (e.g., -vv is more than -v)
+  -m MEAN_VALUE, --mean_yrs MEAN_VALUE
+                        Do the mean over the mean_value years of the file
 ```
 
 ## Full test case:
