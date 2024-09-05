@@ -416,7 +416,7 @@ def read_input_dataset_PFTNPP( path_dataset, plot_type, pft_dict, data_map ):
 
     dst = n4.Dataset(path_dataset)
     n_pft = len(dst.variables['veget'][:]) # this variable contains an axis with values 0:12, so 13 PFTs
-    vegfrac = dst.variables['vegetfrac'] # Vegetation Fraction, time, nvegtyp, lat,lon
+    vegfrac = dst.variables['maxvegetfrac'] # Vegetation Fraction, time, nvegtyp, lat,lon
     vegfrc = vegfrac[-1,:,:,:]  # Taking last time step
     # ~ print(" :: ", len(pft_list))
     remap_fracveg = np.zeros(data_map.shape+(n_pft,),np.float32)
