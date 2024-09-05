@@ -170,6 +170,9 @@ def parse_args() -> argparse.Namespace:
                        ,required=False)  # on/off flag
    parser.add_argument('-v', '--verbosity', action="count",
                        help="increase output verbosity (e.g., -vv is more than -v)")
+   parser.add_argument('-m', '--mean_yrs', dest='mean_value', type=int,
+                       help='Do the mean over the mean_value years of the file '
+                       ,required=False)  # on/off flag
    args = parser.parse_args()
 
    return args
@@ -269,7 +272,7 @@ def check_input_dataset( input_dataset, plot_type ):
 #enddef check_input_dataset
 
 
-def read_input_dataset_PFTNPP( path_dataset, plot_type, pft_dict, data_map ):
+def read_input_dataset_PFTNPP( path_dataset, plot_type, pft_dict, data_map, mean_t_value=None ):
 
 
   # [MOD] returns now the PFTs instead of dominant PFT
@@ -417,7 +420,13 @@ def read_input_dataset_PFTNPP( path_dataset, plot_type, pft_dict, data_map ):
     dst = n4.Dataset(path_dataset)
     n_pft = len(dst.variables['veget'][:]) # this variable contains an axis with values 0:12, so 13 PFTs
     vegfrac = dst.variables['maxvegetfrac'] # Vegetation Fraction, time, nvegtyp, lat,lon
-    vegfrc = vegfrac[-1,:,:,:]  # Taking last time step
+
+    if ( mean_t_value != None ) and ( mean_time_value != 0 ):
+        vegfrc = np.ma.mean(vegfrac[-mean_time_value:,:,:,:],axis=0)  # Taking mean of last time steps
+    else:
+        vegfrc = vegfrac[-1,:,:,:]  # Taking last time steps
+    #endif
+
     # ~ print(" :: ", len(pft_list))
     remap_fracveg = np.zeros(data_map.shape+(n_pft,),np.float32)
     for i in range(n_pft):
@@ -551,6 +560,14 @@ if __name__ == '__main__':
   #endif
   v_print(V_INFO, "limit_npp_value = "+str(limit_npp_value))
   # Looping over the series of inputs (in the form of input_type, path_dataset)
+
+
+  if got_args.mean_value is None:
+     v_print(V_INFO,"Set the default mean_value as limit")
+     mean_time_value = 0
+  else:
+     mean_time_value = got_args.mean_value
+  #endif
 
   full_data_list = []
 
