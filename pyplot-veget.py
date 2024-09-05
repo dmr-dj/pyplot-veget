@@ -46,7 +46,8 @@ class inputtypes :
 known_inputtypes = [
         inputtypes.SEIB_plt,
         inputtypes.MLRout_plt,
-        inputtypes.REVEALS_plt,
+        inputtypes.REVEALS_plt+"OR",
+        inputtypes.REVEALS_plt+"SE",        
         inputtypes.ORCHIDEE_plt,
         inputtypes.CARAIB_plt
         ]
@@ -110,8 +111,10 @@ PFTs_color_NAMES = ast.literal_eval(data)
 
 PFT_list_SEIB =     ["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg"
                     ,"C3","C4"]
-PFT_list_reveals =  ["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg"
+PFT_list_revealsSE =  ["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg"
                     ,"C3"]#, "HPFT"]
+PFT_list_revealsOR =  ["TeNEg","TeBEg","TeBSg","BNEg","BNSg","BBSg"
+                    ,"C3"]#, "HPFT"]                    
 PFT_list_ORCHIDEE = ["solnu", "TrEg","TrSg","TeNEg","TeBEg","TeBSg"
                     ,"BNEg","BBSg","BNSg","TeC3","C4","TrC3","BC3"]
 PFT_list_MLRout = None
@@ -129,11 +132,12 @@ PFT_list_CARAIB = ["C3h","C3d","C4","BSg artic shrubs",                   # 4
                    ]
 
 PFT_list_choices = {
-        inputtypes.SEIB_plt     : PFT_list_SEIB,
-        inputtypes.ORCHIDEE_plt : PFT_list_ORCHIDEE,
-        inputtypes.MLRout_plt   : PFT_list_MLRout,
-        inputtypes.REVEALS_plt  : PFT_list_reveals,
-        inputtypes.CARAIB_plt   : PFT_list_CARAIB
+        inputtypes.SEIB_plt          : PFT_list_SEIB,
+        inputtypes.ORCHIDEE_plt      : PFT_list_ORCHIDEE,
+        inputtypes.MLRout_plt        : PFT_list_MLRout,
+        inputtypes.REVEALS_plt+"OR"  : PFT_list_revealsOR,
+        inputtypes.REVEALS_plt+"SE"  : PFT_list_revealsSE,
+        inputtypes.CARAIB_plt        : PFT_list_CARAIB
         }
 
 # Utilities functions ...
@@ -278,7 +282,7 @@ def read_input_dataset_PFTNPP( path_dataset, plot_type, pft_dict, data_map, mean
   # [MOD] returns now the PFTs instead of dominant PFT
 
   # SEIB -type of file // directory with a bunch of files. Reads them as out_npppft*
-  if plot_type == inputtypes.SEIB_plt:
+  if inputtypes.SEIB_plt == plot_type:
 
     # the typical output of SEIB used is a list of out_npppft[NN].txt file
     # Here the list of fichs defines the PFT numbers that will match the above list of PFTs
@@ -340,7 +344,7 @@ def read_input_dataset_PFTNPP( path_dataset, plot_type, pft_dict, data_map, mean
 
     return data_toPlot
 
-  elif plot_type == inputtypes.REVEALS_plt:
+  elif inputtypes.REVEALS_plt in plot_type:
 
     # For REVEALS, we read something which is not PFTNPP but a % of the cell.
     dataPLOT = pd.read_csv(path_dataset)
@@ -366,7 +370,7 @@ def read_input_dataset_PFTNPP( path_dataset, plot_type, pft_dict, data_map, mean
 
     return data_toPlot
 
-  elif plot_type == inputtypes.MLRout_plt:
+  elif inputtypes.MLRout_plt == plot_type:
 
     data_array = np.zeros(data_map.shape,np.float32)
     data_toPLOT = pd.read_csv(path_dataset)
@@ -391,7 +395,7 @@ def read_input_dataset_PFTNPP( path_dataset, plot_type, pft_dict, data_map, mean
 
     return data_array
 
-  elif plot_type == inputtypes.CARAIB_plt:
+  elif inputtypes.CARAIB_plt == plot_type:
 
     dataPLOT = pd.read_csv(path_dataset)
     n_pft = len(pft_dict)
@@ -415,7 +419,7 @@ def read_input_dataset_PFTNPP( path_dataset, plot_type, pft_dict, data_map, mean
 
     return data_toPlot
 
-  elif plot_type == inputtypes.ORCHIDEE_plt:
+  elif inputtypes.ORCHIDEE_plt == plot_type:
 
     dst = n4.Dataset(path_dataset)
     n_pft = len(dst.variables['veget'][:]) # this variable contains an axis with values 0:12, so 13 PFTs
@@ -581,6 +585,12 @@ if __name__ == '__main__':
     #fi
 
     pft_list = PFT_list_choices[plot_type]
+    
+    if inputtypes.REVEALS_plt in plot_type:        
+        # This one of the different REVEALS TYPES
+        # Rest is common for all reveals
+        plot_type=inputtypes.REVEALS_plt
+    # endif
 
     if got_args.desert_flg :
       pft_list.append("DES")
