@@ -69,19 +69,19 @@ class data_geoEurope :
         self.pftdict = pftdict
         self.inputtype = inputtype
     #enddef
-    
+
     def add_lndmsk(self, lndmsk):
         self.lndmsk=lndmsk
     #enddef
-    
+
     def setdominantIndx(self):
         n_pft = len(self.pftdict)
 
         # Only if last dimension is n_pft (lon,lat,n_pft) and corresponds in size
         if len(self.geodata.shape) == 3 and self.geodata.shape[-1] == n_pft:
-          v_print(V_WARN,"Computing dominantIndx")          
+          v_print(V_WARN,"Computing dominantIndx")
           # Get maximum location (a.k.a. dominantIndx)
-          self.dominantIndx = np.ma.zeros((self.geodata.shape),np.uint8)          
+          self.dominantIndx = np.ma.zeros((self.geodata.shape),np.uint8)
           self.dominantIndx = self.geodata.argmax(axis=-1)
           # If landmask exists, remask with it (since argmax returns an np array, not np.ma)
           if hasattr(self, "lndmsk"):
@@ -93,7 +93,7 @@ class data_geoEurope :
         else: # if only 2D, set it as dominant, but might be completly wrong
           v_print(V_WARN,"Setting dominantIndx")
           self.dominantIndx = self.geodata
-		#endif			
+        #endif
     #enddef
 
 #endclass
@@ -350,7 +350,7 @@ def read_input_dataset_PFTNPP( path_dataset, plot_type, pft_dict, data_map ):
       indx_lon = find_closest(lons_array[:,0],dataPLOT.LonDD.values[indx])
       grid_toPLOT[indx_lon, indx_lat,:] = dataPLOT.values[indx,3:3+n_pft+1]
     #endfor
-   
+
     # ~ data_toPlot = np.ma.where(grid_toPLOT[:,:,-1] < 100.0,np.ma.masked, grid_toPLOT[:,:,0:n_pft].argmax(axis=-1))
 
     # ~ data_toPlot = np.ma.masked_less_equal(grid_toPLOT[:,:,0:n_pft],0)
@@ -545,7 +545,7 @@ if __name__ == '__main__':
 
   if got_args.limit_npp_val is None:
      v_print(V_INFO,"Set the default npp_value as limit")
-     limit_npp_value = 0.05     
+     limit_npp_value = 0.05
   else:
      limit_npp_value = got_args.limit_npp_val
   #endif

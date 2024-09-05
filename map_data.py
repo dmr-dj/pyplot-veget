@@ -133,20 +133,39 @@ def map_dataintPFT(var_map, lons, lats, title, legend_label, colorlist,
                         # ~ label=legend_label,ticks=fix_bounds)
     cbar = plt.colorbar(mesh,
                        orientation='vertical',
-                       shrink=0.61,
-                       label=legend_label,
+                       shrink=0.9,
+                       # ~ label=legend_label,
                        boundaries=cmap_bounds_list,
                        drawedges=True,
                        ticks=pft_cb_ticks_list,
                        spacing='uniform'
                        )
+
     cbar.set_ticklabels(pft_cb_labels_list)
 
-    # ~ if labels != None:
-        # ~ cbar.ax.set_yticklabels(labels[round(min_bounds):round(max_bounds)+1])
 
-    ax.gridlines()
+    cbar.ax.tick_params(labelsize='x-large')
+    cbar.set_label(label=legend_label,fontsize='x-large')
+
+    # From jyp's script
+
+    # ax.set_global()
     ax.coastlines()
+
+    gls = ax.gridlines(draw_labels=True, # Labels not supported yet for Mollweide
+                   xlocs=np.arange(-30., 60, 10.),
+                   ylocs=np.arange(30., 80., 10.),
+                   linestyle='--',
+                   color='0.5',
+                   linewidth=0.7)
+
+    # Suppress top longitude labels
+    gls.top_labels=False
+    # Suppress right latitude labels
+    gls.right_labels=False
+
+    ax.set_title(title,fontsize='x-large')
+
     fig.show()
 
     if out_file:
@@ -191,7 +210,7 @@ def map_dataint(var_map, lons, lats, title, legend_label, colorlist=None,
     cmap.set_under(color="grey")
 
     fig, ax = plt.subplots(figsize=(10,5), subplot_kw=dict(projection=crs))
-    ax.set_title(title)
+
     ax.set_global()
     ax.set_extent(extent)
     ax.gridlines()
@@ -200,15 +219,36 @@ def map_dataint(var_map, lons, lats, title, legend_label, colorlist=None,
     mesh = ax.pcolormesh(lons, lats, var_map, cmap=cmap, transform=crs,
                           vmin=min_bounds-0.5, vmax=max_bounds+0.5)
 
-    cbar = plt.colorbar(mesh, orientation='vertical', shrink=0.61,
-                        label=legend_label,ticks=fix_bounds)
+    cbar = plt.colorbar(mesh, orientation='vertical', shrink=0.9,
+                        ticks=fix_bounds)
 
 
     if labels != None:
         cbar.ax.set_yticklabels(labels[round(min_bounds):round(max_bounds)+1])
 
-    ax.gridlines()
+    cbar.ax.tick_params(labelsize='x-large')
+    cbar.set_label(label=legend_label,fontsize='x-large')
+
+    # From jyp's script
+
+    # ax.set_global()
     ax.coastlines()
+
+    gls = ax.gridlines(draw_labels=True, # Labels not supported yet for Mollweide
+                   xlocs=np.arange(-30., 60, 10.),
+                   ylocs=np.arange(30., 80., 10.),
+                   linestyle='--',
+                   color='0.5',
+                   linewidth=0.7)
+
+    # Suppress top longitude labels
+    gls.top_labels=False
+    # Suppress right latitude labels
+    gls.right_labels=False
+
+    ax.set_title(title,fontsize='x-large')
+
+
     fig.show()
 
     if out_file:
