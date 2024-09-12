@@ -135,7 +135,9 @@ PFT_list_CARAIB = ["C3h","C3d","C4","BSg artic shrubs",                   # 4
                    "BSg B/Te cold trees","BSg Te cool trees",             # 23
                    "BSg Te warm trees","TrBRg","TrBEg"                    # 26
                    ]
-
+biome_list = ["Polar desert", "Arctic/Alpine-tundra", "tropical evergreen forest", "tropical deciduous forest",
+              "temperate conifer forest", "temperate broad-leaved evergreen forest", "temperate deciduous forest", 
+              "boreal evergreen forest", "boreal deciduous forest", "xeric woodland / scrub", "Grassland / steppe / Savanna", "Desert"]
 PFT_list_choices = {
         inputtypes.SEIB_plt          : PFT_list_SEIB,
         inputtypes.ORCHIDEE_plt      : PFT_list_ORCHIDEE,
@@ -595,10 +597,42 @@ def load_extradata_SEIB(geodata_object,pathtoNPPdataset,data_arrayshape):
     geodata_object.add_extradata(data_lai)
 #enddef
 
-def compute_biome(geodataLAI,geodataNPP):
+def compute_biome(geodataLAI,geodataDominant):
 
     # Code of the function to be written from the FORTRAN code of SEIB
-    pass
+    geodatabiome = np.ma.zeros((geodataLAI.shape),np.int8)
+    for i in range(geodatabiome.shape[0]) :
+        for j in range(geodatabiome.shape[1]) :
+            match geodataDominant[i,j] :
+                case range(1, 5) :
+                    if geodataLAI[i,j]>= 2.5 :
+                        geodatabiome[i,j] = 3
+                case 6 :
+                    if geodataLAI[i,j]>= 2.5 :
+                        geodatabiome[i,j] = 4
+                case 7 :
+                    if geodataLAI[i,j]>= 1.5 :
+                        geodatabiome[i,j] = 5
+                case 8 :
+                    if geodataLAI[i,j]>= 2.5 :
+                        geodatabiome[i,j] = 6
+                case 9 :
+                    if geodataLAI[i,j]>= 2.5 :
+                        geodatabiome[i,j] = 7
+                case range(10,12) :
+                    geodatabiome[i,j] = 8
+                case (13,14) :
+                    geodatabiome[i,j] = 9
+                case (1,14) :
+                    if geodataLAI[i,j]>= 1.0 :
+                        geodatabiome[i,j] = 10
+                    if geodataLAI[i,j]>= 0.2 :
+                        geodatabiome[i,j] = 11
+                    else :
+                        geodatabiome[i,j] = 12 
+    data_toPlot[:,:] = np.ma.masked_less(np.ma.where(landmask.T[:,::-1]>0,geodatabiome[:,:,:],-1),0)
+
+    return data_toPlot
     
 #enddef compute_biome
 
@@ -761,7 +795,7 @@ if __name__ == '__main__':
                  , cmap="BrBG", masklmt=-5.0
                  )
 
-  biome_computed = compute_biome(to_plot.extradata[0],to_plot.geodata)
+  biome_computed = compute_biome(to_plot.extradata[0],to_plot.dominantIndx)
 
   # Section to compute the distance between the two datasets ...
 
