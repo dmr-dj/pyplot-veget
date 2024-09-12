@@ -600,39 +600,51 @@ def load_extradata_SEIB(geodata_object,pathtoNPPdataset,data_arrayshape):
 def compute_biome(geodataLAI,geodataDominant):
 
     # Code of the function to be written from the FORTRAN code of SEIB
-    geodatabiome = np.ma.zeros((geodataLAI.shape),np.int8)
+    geodatabiome = np.ma.zeros((geodataLAI.shape),np.int8)-1
     for i in range(geodatabiome.shape[0]) :
         for j in range(geodatabiome.shape[1]) :
-            match geodataDominant[i,j] :
-                case range(1, 5) :
-                    if geodataLAI[i,j]>= 2.5 :
-                        geodatabiome[i,j] = 3
-                case 6 :
-                    if geodataLAI[i,j]>= 2.5 :
-                        geodatabiome[i,j] = 4
-                case 7 :
-                    if geodataLAI[i,j]>= 1.5 :
-                        geodatabiome[i,j] = 5
-                case 8 :
-                    if geodataLAI[i,j]>= 2.5 :
-                        geodatabiome[i,j] = 6
-                case 9 :
-                    if geodataLAI[i,j]>= 2.5 :
-                        geodatabiome[i,j] = 7
-                case range(10,12) :
-                    geodatabiome[i,j] = 8
-                case (13,14) :
-                    geodatabiome[i,j] = 9
-                case (1,14) :
-                    if geodataLAI[i,j]>= 1.0 :
-                        geodatabiome[i,j] = 10
-                    if geodataLAI[i,j]>= 0.2 :
-                        geodatabiome[i,j] = 11
-                    else :
-                        geodatabiome[i,j] = 12 
-    data_toPlot[:,:] = np.ma.masked_less(np.ma.where(landmask.T[:,::-1]>0,geodatabiome[:,:,:],-1),0)
+          if not np.ma.is_masked(geodataDominant[i,j]):			
+            dominantgeo = geodataDominant[i,j] + 5
+            # ~ print(geodataDominant[i,j], geodataLAI[i,j])
+            if dominantgeo >= 1 and dominantgeo <= 5 :
+                # ~ case range(1, 5) :
+               if geodataLAI[i,j]>= 2.5 :
+                  geodatabiome[i,j] = 3
+               #endif
+            elif dominantgeo == 6 :   
+               if geodataLAI[i,j]>= 2.5 :
+                  geodatabiome[i,j] = 4
+               #endif
+            elif dominantgeo == 7 :
+               if geodataLAI[i,j]>= 1.5 :
+                  geodatabiome[i,j] = 5
+                #endif
+            elif dominantgeo == 8 :
+               if geodataLAI[i,j]>= 2.5 :
+                  geodatabiome[i,j] = 6
+                #endif
+            elif dominantgeo == 9 :                
+               if geodataLAI[i,j]>= 2.5 :
+                  geodatabiome[i,j] = 7
+                #endif
+            elif dominantgeo >= 10 and dominantgeo <= 12 :
+                geodatabiome[i,j] = 8
+            elif dominantgeo >= 13 and dominantgeo <= 14 :
+                geodatabiome[i,j] = 9
+            elif dominantgeo >= 1 and dominantgeo <= 14 :
+                if geodataLAI[i,j]>= 1.0 :
+                   geodatabiome[i,j] = 10
+                if geodataLAI[i,j]>= 0.2 :
+                   geodatabiome[i,j] = 11
+                else :
+                   geodatabiome[i,j] = 12
+                #endif             
+             #endif
+          #endif
+        #endfor
+    #endfor
 
-    return data_toPlot
+    return geodatabiome
     
 #enddef compute_biome
 
@@ -796,6 +808,10 @@ if __name__ == '__main__':
                  )
 
   biome_computed = compute_biome(to_plot.extradata[0],to_plot.dominantIndx)
+  map_dataint(biome_computed,to_plot.lons,to_plot.lats,"Generic Biomes","Biome Names", colorlist=["darkgreen","bisque","coral","darkred","black"])
+
+
+
 
   # Section to compute the distance between the two datasets ...
 
