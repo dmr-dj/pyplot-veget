@@ -146,7 +146,7 @@ PFT_list_choices = {
         }
 
 
-extradata_SEIB_list = ["lai_max","precipitation"]
+extradata_SEIB_list = ["lai_max",]#,"precipitation"]
 
 # Utilities functions ...
 # =======================
@@ -590,10 +590,17 @@ def load_extradata_SEIB(geodata_object,pathtoNPPdataset,data_arrayshape):
     dircontain_data=os.path.dirname(pathtoNPPdataset)
     # Loop over potential datasets
     for variabel in extradata_SEIB_list:
-        data_lai = read_input_dataset_values(pathtoNPPdataset+"out_"+variabel+".txt",inputtypes.SEIB_plt, data_arrayshape)
+        data_lai = read_input_dataset_values(dircontain_data+"/out_"+variabel+".txt",inputtypes.SEIB_plt, data_arrayshape)
     #endfor
-    geodata.addextradata(data_lai)
+    geodata_object.add_extradata(data_lai)
 #enddef
+
+def compute_biome(geodataLAI,geodataNPP):
+
+    # Code of the function to be written from the FORTRAN code of SEIB
+    pass
+    
+#enddef compute_biome
 
 
 # ----- MAIN PROGRAM -----
@@ -693,9 +700,9 @@ if __name__ == '__main__':
       full_data_list[-1].add_lndmsk(landmask)
     #endif
 
-    if got_args.loadextras_flgs:
+    if got_args.loadextras_flg:
       if inputtypes.SEIB_plt in plot_type:
-         extra_dataloded = load_extradata_SEIB(full_data_list[-1],path_dataset)
+         extra_dataloded = load_extradata_SEIB(full_data_list[-1],path_dataset,data_array)
       #endif
     #endif
 
@@ -748,13 +755,13 @@ if __name__ == '__main__':
   # endfor
 
 
-  data_lai = read_input_dataset_values("test-data/out_6k_new/out_lai_max.txt",plot_type, data_array)
-  map_dataflt(data_lai
+  # ~ data_lai = read_input_dataset_values("test-data/out_6k_new/out_lai_max.txt",plot_type, data_array)
+  map_dataflt(to_plot.extradata[0]
                  ,to_plot.lons,to_plot.lats,"Ad Hoc plotting","lai"
                  , cmap="BrBG", masklmt=-5.0
                  )
 
-  biome_computed = compute_biome(data_lai,data_npp)
+  biome_computed = compute_biome(to_plot.extradata[0],to_plot.geodata)
 
   # Section to compute the distance between the two datasets ...
 
