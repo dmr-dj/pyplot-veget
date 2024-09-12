@@ -47,7 +47,7 @@ known_inputtypes = [
         inputtypes.SEIB_plt,
         inputtypes.MLRout_plt,
         inputtypes.REVEALS_plt+"OR",
-        inputtypes.REVEALS_plt+"SE",        
+        inputtypes.REVEALS_plt+"SE",
         inputtypes.ORCHIDEE_plt,
         inputtypes.CARAIB_plt
         ]
@@ -69,6 +69,7 @@ class data_geoEurope :
         self.path = path
         self.pftdict = pftdict
         self.inputtype = inputtype
+        self.extradata = []
     #enddef
 
     def add_lndmsk(self, lndmsk):
@@ -97,6 +98,10 @@ class data_geoEurope :
         #endif
     #enddef
 
+    def add_extradata(self,geodata_type):
+       self.extradata.append(geodata_type)
+    #enddef
+
 #endclass
 
 # Define the correspondance between PFT names and colors
@@ -114,7 +119,7 @@ PFT_list_SEIB =     ["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg"
 PFT_list_revealsSE =  ["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg"
                     ,"C3"]#, "HPFT"]
 PFT_list_revealsOR =  ["TeNEg","TeBEg","TeBSg","BNEg","BNSg","BBSg"
-                    ,"C3"]#, "HPFT"]                    
+                    ,"C3"]#, "HPFT"]
 PFT_list_ORCHIDEE = ["solnu", "TrEg","TrSg","TeNEg","TeBEg","TeBSg"
                     ,"BNEg","BBSg","BNSg","TeC3","C4","TrC3","BC3"]
 PFT_list_MLRout = None
@@ -139,6 +144,9 @@ PFT_list_choices = {
         inputtypes.REVEALS_plt+"SE"  : PFT_list_revealsSE,
         inputtypes.CARAIB_plt        : PFT_list_CARAIB
         }
+
+
+extradata_SEIB_list = ["lai_max","precipitation"]
 
 # Utilities functions ...
 # =======================
@@ -165,6 +173,10 @@ def parse_args() -> argparse.Namespace:
    parser.add_argument('-s', '--substract', dest='substract_flg',
                        action='store_true',
                        help='If set, attempt the difference between the two first dataset with a weight matrix'
+                       ,required=False)  # on/off flag
+   parser.add_argument('-e', '--loadextras', dest='loadextras_flg',
+                       action='store_true',
+                       help='If set, try to read more variable than the NPP from the pathdata given in -i'
                        ,required=False)  # on/off flag
    parser.add_argument('-d', '--desert', dest='desert_flg', action='store_true',
                        help='Add an auto-computed desert pseudo-PFT based on low NPP points'
@@ -276,7 +288,44 @@ def check_input_dataset( input_dataset, plot_type ):
 #enddef check_input_dataset
 
 
-def read_input_dataset_PFTNPP( path_dataset, plot_type, pft_dict, data_map, mean_t_value=None ):
+def read_input_dataset_values( path_dataset, plot_type, data_map, mean_t_value=None ):
+
+
+  # [MOD] returns now the PFTs instead of dominant PFT
+
+  # SEIB -type of file // directory with a bunch of files. Reads them as out_npppft*
+  if inputtypes.SEIB_plt == plot_type:
+
+    data_array_nm = np.zeros(data_map.shape,np.float32)-1.0
+
+    # SEIB input is a directory with a list of files, reading up the thing in one big table
+    fich = ""+path_dataset
+    data = pd.read_csv(fich,header=None)
+    data_array_nm[:,:] = data.values[:,0:-1].T[:,::-1]
+
+    # here data_array_nm contains the lons, lats, pft_typ, npp values
+
+    # Masking negative npp values if any
+    data_array = np.ma.masked_less(data_array_nm,0)
+
+    data_toPlot = np.ma.zeros((data_array.shape),np.float32)
+
+    # Masking correctly the data with the landmask
+
+    data_toPlot[:,:] = np.ma.masked_less(np.ma.where(landmask.T[:,::-1]>0,data_array[:,:],-1),0)
+
+    return data_toPlot
+
+  else:
+
+    v_print(V_ERROR,"Not implemented for this plot_type")
+    raise IndexError('Plot-type error for single map float value')
+
+  #endif
+
+#enddef read_input_dataset_values
+
+def read_input_dataset_valuesperPFT( path_dataset, plot_type, pft_dict, data_map, mean_t_value=None ):
 
 
   # [MOD] returns now the PFTs instead of dominant PFT
@@ -445,7 +494,8 @@ def read_input_dataset_PFTNPP( path_dataset, plot_type, pft_dict, data_map, mean
 
   #endif
 
-#enddef read_input_dataset_PFTNPP
+#enddef read_input_dataset_values
+
 
 
 # Non Contiguous is dataset2 ...
@@ -535,6 +585,17 @@ def get_PFT_weights(data01,data02):
 #enddef get_PFT_weights
 
 
+def load_extradata_SEIB(geodata_object,pathtoNPPdataset,data_arrayshape):
+    # Get the directory where presumably the data
+    dircontain_data=os.path.dirname(pathtoNPPdataset)
+    # Loop over potential datasets
+    for variabel in extradata_SEIB_list:
+        data_lai = read_input_dataset_values(pathtoNPPdataset+"out_"+variabel+".txt",inputtypes.SEIB_plt, data_arrayshape)
+    #endfor
+    geodata.addextradata(data_lai)
+#enddef
+
+
 # ----- MAIN PROGRAM -----
 
 
@@ -563,8 +624,6 @@ if __name__ == '__main__':
      limit_npp_value = got_args.limit_npp_val
   #endif
   v_print(V_INFO, "limit_npp_value = "+str(limit_npp_value))
-  # Looping over the series of inputs (in the form of input_type, path_dataset)
-
 
   if got_args.mean_value is None:
      v_print(V_INFO,"Set the default mean_value as limit")
@@ -574,6 +633,8 @@ if __name__ == '__main__':
   #endif
 
   full_data_list = []
+
+  # Looping over the series of inputs (in the form of input_type, path_dataset)
 
   for nb_if in range(len(got_args.input_type)):
 
@@ -585,8 +646,8 @@ if __name__ == '__main__':
     #fi
 
     pft_list = PFT_list_choices[plot_type]
-    
-    if inputtypes.REVEALS_plt in plot_type:        
+
+    if inputtypes.REVEALS_plt in plot_type:
         # This one of the different REVEALS TYPES
         # Rest is common for all reveals
         plot_type=inputtypes.REVEALS_plt
@@ -595,6 +656,7 @@ if __name__ == '__main__':
     if got_args.desert_flg :
       pft_list.append("DES")
     #endif
+
     if not pft_list is None:
       n_pft=len(pft_list)
       pft_dict=pft_list[0:n_pft] # should be removed ....
@@ -614,17 +676,15 @@ if __name__ == '__main__':
 
     data_array = np.zeros((n_lons,n_lats),np.float16) # Base format for the whole thing: a lat,lon placeholder
 
-
     # Check the input data format, depending on plot type
     v_print(V_WARN,"Check input data format: ", path_dataset, check_input_dataset( path_dataset, plot_type ))
 
     if check_input_dataset( path_dataset, plot_type ) == path_dataset:
       v_print(V_INFO,"Reading input dataset ...")
 
-        # read_input_dataset returns:
-        # the max npp pft if SEIB is chosen
+       # The function read_input_dataset_valuesperPFT reads a float value for each PFT on a map, not NPP specific
+      data_toPlot = read_input_dataset_valuesperPFT( path_dataset, plot_type, pft_list, data_array )
 
-      data_toPlot = read_input_dataset_PFTNPP( path_dataset, plot_type, pft_list, data_array )
     #endif
 
     # Add the data thus obtained in the data list containing all datasets ...
@@ -633,7 +693,13 @@ if __name__ == '__main__':
       full_data_list[-1].add_lndmsk(landmask)
     #endif
 
-  #end_for
+    if got_args.loadextras_flgs:
+      if inputtypes.SEIB_plt in plot_type:
+         extra_dataloded = load_extradata_SEIB(full_data_list[-1],path_dataset)
+      #endif
+    #endif
+
+  #end_for # on reading datasets
 
   for nb_data in range(len(full_data_list)):
 
@@ -656,7 +722,7 @@ if __name__ == '__main__':
                  )
     else:
 
-      # Plotting the dominant PFR
+      # Plotting the dominant PFT
 
       # ~ data_dominantPFT = to_plot.geodata[:,:,0:n_pft].argmax(axis=-1)
       # ~ data_dominantPFT = np.ma.masked_less(np.ma.where(to_plot.lndmsk.T[:,::-1]>0,data_dominantPFT,-1),0)
@@ -681,6 +747,14 @@ if __name__ == '__main__':
 
   # endfor
 
+
+  data_lai = read_input_dataset_values("test-data/out_6k_new/out_lai_max.txt",plot_type, data_array)
+  map_dataflt(data_lai
+                 ,to_plot.lons,to_plot.lats,"Ad Hoc plotting","lai"
+                 , cmap="BrBG", masklmt=-5.0
+                 )
+
+  biome_computed = compute_biome(data_lai,data_npp)
 
   # Section to compute the distance between the two datasets ...
 
