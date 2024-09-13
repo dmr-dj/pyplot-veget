@@ -62,12 +62,13 @@ grid_choices  = {
 
 class data_geoEurope :
 
-    def __init__(self, geodata, lons, lats, path, pftdict, inputtype):
+    def __init__(self, geodata, lons, lats, path, pftdict, biomedict, inputtype):
         self.geodata = geodata
         self.lons = lons
         self.lats = lats
         self.path = path
         self.pftdict = pftdict
+        self.biomedict = biomedict
         self.inputtype = inputtype
         self.extradata = []
     #enddef
@@ -112,7 +113,10 @@ with open('inputdata/PFT_color_scheme.txt') as f:
 
 PFTs_color_NAMES = ast.literal_eval(data)
 
+with open('inputdata/BIOMES_color_scheme.txt') as g:
+    data2 = g.read()
 
+BIOMES_color_NAMES = ast.literal_eval(data2)
 
 PFT_list_SEIB =     ["TeNEg","Med.","TeBSg","BNEg","BNSg","BBSg"
                     ,"C3","C4"]
@@ -135,7 +139,7 @@ PFT_list_CARAIB = ["C3h","C3d","C4","BSg artic shrubs",                   # 4
                    "BSg B/Te cold trees","BSg Te cool trees",             # 23
                    "BSg Te warm trees","TrBRg","TrBEg"                    # 26
                    ]
-biome_list = ["Polar desert", "Arctic/Alpine-tundra", "tropical evergreen forest", "tropical deciduous forest",
+biome_list = ["Water","Polar desert", "Arctic/Alpine-tundra", "tropical evergreen forest", "tropical deciduous forest",
               "temperate conifer forest", "temperate broad-leaved evergreen forest", "temperate deciduous forest", 
               "boreal evergreen forest", "boreal deciduous forest", "xeric woodland / scrub", "Grassland / steppe / Savanna", "Desert"]
 PFT_list_choices = {
@@ -600,44 +604,88 @@ def load_extradata_SEIB(geodata_object,pathtoNPPdataset,data_arrayshape):
 def compute_biome(geodataLAI,geodataDominant):
 
     # Code of the function to be written from the FORTRAN code of SEIB
-    geodatabiome = np.ma.zeros((geodataLAI.shape),np.int8)-1
+    geodatabiome = np.ma.zeros((geodataLAI.shape),np.int8) 
     for i in range(geodatabiome.shape[0]) :
         for j in range(geodatabiome.shape[1]) :
           if not np.ma.is_masked(geodataDominant[i,j]):			
-            dominantgeo = geodataDominant[i,j] + 5
-            # ~ print(geodataDominant[i,j], geodataLAI[i,j])
+            dominantgeo = geodataDominant[i,j] + 7
+            #print(geodataDominant[i,j], geodataLAI[i,j], dominantgeo)
             if dominantgeo >= 1 and dominantgeo <= 5 :
                 # ~ case range(1, 5) :
                if geodataLAI[i,j]>= 2.5 :
                   geodatabiome[i,j] = 3
+               elif geodataLAI[i,j]>= 1.5 :
+                  geodatabiome[i,j] = 10
+               elif geodataLAI[i,j]>= 0.2 :
+                  geodatabiome[i,j] = 11
+               else :
+                  geodatabiome[i,j] = 12
                #endif
             elif dominantgeo == 6 :   
                if geodataLAI[i,j]>= 2.5 :
                   geodatabiome[i,j] = 4
+               elif geodataLAI[i,j]>= 1.5 :
+                  geodatabiome[i,j] = 10
+               elif geodataLAI[i,j]>= 0.2 :
+                  geodatabiome[i,j] = 11
+               else :
+                  geodatabiome[i,j] = 12
                #endif
             elif dominantgeo == 7 :
                if geodataLAI[i,j]>= 1.5 :
                   geodatabiome[i,j] = 5
-                #endif
+               elif geodataLAI[i,j]>= 1.0 :
+                  geodatabiome[i,j] = 10
+               elif geodataLAI[i,j]>= 0.2 :
+                  geodatabiome[i,j] = 11
+               else :
+                  geodatabiome[i,j] = 12
+               #endif
             elif dominantgeo == 8 :
                if geodataLAI[i,j]>= 2.5 :
                   geodatabiome[i,j] = 6
-                #endif
+               elif geodataLAI[i,j]>= 1.5 :
+                  geodatabiome[i,j] = 10
+               elif geodataLAI[i,j]>= 0.2 :
+                  geodatabiome[i,j] = 11
+               else :
+                  geodatabiome[i,j] = 12
+               #endif
             elif dominantgeo == 9 :                
                if geodataLAI[i,j]>= 2.5 :
                   geodatabiome[i,j] = 7
+               elif geodataLAI[i,j]>= 1.5 :
+                  geodatabiome[i,j] = 10
+               elif geodataLAI[i,j]>= 0.2 :
+                  geodatabiome[i,j] = 11
+               else :
+                  geodatabiome[i,j] = 12
                 #endif
             elif dominantgeo >= 10 and dominantgeo <= 12 :
-                geodatabiome[i,j] = 8
-            elif dominantgeo >= 13 and dominantgeo <= 14 :
-                geodatabiome[i,j] = 9
-            elif dominantgeo >= 1 and dominantgeo <= 14 :
-                if geodataLAI[i,j]>= 1.0 :
-                   geodatabiome[i,j] = 10
-                if geodataLAI[i,j]>= 0.2 :
-                   geodatabiome[i,j] = 11
-                else :
-                   geodatabiome[i,j] = 12
+               if geodataLAI[i,j]>= 1.5 :
+                  geodatabiome[i,j] = 8
+               elif geodataLAI[i,j]>= 1.0 :
+                  geodatabiome[i,j] = 10
+               elif geodataLAI[i,j]>= 0.2 :
+                  geodatabiome[i,j] = 11
+               else :
+                  geodatabiome[i,j] = 12
+
+            elif dominantgeo >= 13 or dominantgeo <= 14 :
+               if geodataLAI[i,j]>= 2.5 : 
+                  geodatabiome[i,j] = 9
+               elif geodataLAI[i,j]>= 1.5 :
+                  geodatabiome[i,j] = 10
+               elif geodataLAI[i,j]>= 0.2 :
+                  geodatabiome[i,j] = 11
+               else :
+                  geodatabiome[i,j] = 12
+            elif dominantgeo >= 15 and dominantgeo <= 16 :
+               if geodataLAI[i,j]>= 0.2 :
+                  geodatabiome[i,j] = 11
+               else :
+                  geodatabiome[i,j] = 12
+      
                 #endif             
              #endif
           #endif
@@ -741,7 +789,7 @@ if __name__ == '__main__':
     #endif
 
     # Add the data thus obtained in the data list containing all datasets ...
-    full_data_list.append(data_geoEurope(data_toPlot, lons_array, lats_array, path_dataset, pft_list, plot_type))
+    full_data_list.append(data_geoEurope(data_toPlot, lons_array, lats_array, path_dataset, pft_list, biome_list, plot_type))
     if not landmask is None:
       full_data_list[-1].add_lndmsk(landmask)
     #endif
@@ -760,7 +808,7 @@ if __name__ == '__main__':
 
     # ~ pft_color_dict = PFT_color_choices[to_plot.inputtype]
     pft_color_dict = PFTs_color_NAMES
-
+    biomes_color_dict = BIOMES_color_NAMES
     if to_plot.inputtype == inputtypes.MLRout_plt:
       map_dataflt(np.ma.masked_less(np.ma.where(to_plot.lndmsk.T[:,::-1]>0,to_plot.geodata,-1),0)
                  ,to_plot.lons,to_plot.lats,os.path.basename(to_plot.path),"[1]"
@@ -808,7 +856,7 @@ if __name__ == '__main__':
                  )
 
   biome_computed = compute_biome(to_plot.extradata[0],to_plot.dominantIndx)
-  map_dataint(biome_computed,to_plot.lons,to_plot.lats,"Generic Biomes","Biome Names", colorlist=["darkgreen","bisque","coral","darkred","black"])
+  map_dataint(biome_computed,to_plot.lons,to_plot.lats, to_plot.path, "Biome Names", colorlist=[biomes_color_dict[biomes] for biomes in to_plot.biomedict], labels=to_plot.biomedict)
 
 
 

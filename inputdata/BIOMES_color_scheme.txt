@@ -1,0 +1,14 @@
+{  "Water"                                   : "white",
+   "Polar desert"                            : "lightskyblue", 
+   "Arctic/Alpine-tundra"                    : "lightblue", 
+   "tropical evergreen forest"               : "red",
+   "tropical deciduous forest"               : "darkred",
+   "temperate conifer forest"                : "yellowgreen",
+   "temperate broad-leaved evergreen forest" : "olive",
+   "temperate deciduous forest"              : "lime",
+   "boreal evergreen forest"                 : "darkgreen",
+   "boreal deciduous forest"                 : "blue", 
+   "xeric woodland / scrub"                  : "grey",
+   "Grassland / steppe / Savanna"            : "bisque", 
+   "Desert"                                  : "orange"
+}
