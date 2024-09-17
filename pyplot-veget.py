@@ -5,7 +5,7 @@ __author__     = "Didier M. Roche, Isabeau Bertrix, Mathis Voisin"
 __copyright__  = "Copyright 2024, HIVE project"
 __credits__    = ["Jean-Yves Peterschmitt"]
 __license__    = "Apache-2.0"
-__version__    = "0.7.5"
+__version__    = "0.7.6"
 __maintainer__ = "Didier M. Roche"
 __email__      = "didier.roche@lsce.ipsl.fr"
 __status__     = "Development"
@@ -21,6 +21,9 @@ import pandas as pd
 import ast
 
 from map_data import *
+
+# For parsing directories
+import glob
 
 # Generic definitions
 # ===================
@@ -152,7 +155,7 @@ PFT_list_choices = {
         }
 
 
-extradata_SEIB_list = ["lai_max",]#,"precipitation"]
+extradata_SEIB_list = ["lai_max","precipitation","gdd0","gdd5"]
 
 # Utilities functions ...
 # =======================
@@ -594,15 +597,35 @@ def get_PFT_weights(data01,data02):
 def load_extradata_SEIB(geodata_object,pathtoNPPdataset,data_arrayshape):
     # Get the directory where presumably the data
     dircontain_data=os.path.dirname(pathtoNPPdataset)
-    # Loop over potential datasets
+
+    # In this new version, I have several potential datatypes, either SEIBs out_*.txt or *.nc
+    # Need a split on this.
+
     for variabel in extradata_SEIB_list:
-        data_lai = read_input_dataset_values(dircontain_data+"/out_"+variabel+".txt",inputtypes.SEIB_plt, data_arrayshape)
+      potential_files=glob.glob(dircontain_data+"/*"+variabel+".*")
+      # Loop over potential datasets
+      if len(potential_files) == 1 and os.path.splitext(potential_files[0])[1] == ".nc" : # This is a netCDF format, tryit
+          print("Trying to open: "+potential_files[0])
+          dst = n4.Dataset(potential_files[0])
+          gotten_data = dst.variables[''+variabel] # Vegetation Fraction, time, nvegtyp, lat,lon
+          gotten_data = np.ma.squeeze(gotten_data)
+          geodata_object.add_extradata(gotten_data)
+      elif len(potential_files) == 1 and os.path.splitext(potential_files[0])[1] == ".txt":
+          print("Trying to open: "+potential_files[0])
+          gotten_data = read_input_dataset_values(dircontain_data+"/out_"+variabel+".txt",inputtypes.SEIB_plt, data_arrayshape)
+          geodata_object.add_extradata(gotten_data)
+      else:
+          print("No matching file for loading ... "+variabel)
+      #fi
     #endfor
-    geodata_object.add_extradata(data_lai)
+
 #enddef
 
-def compute_biome(geodataLAI,geodataDominant):
+def compute_biome(geodataLAI,geodataDominant,gdd0_in = None, gdd5_in = None):
 
+    if ( not gdd0_in is None ) and ( not gdd5_in is None ):
+         print("provided with gdd0 and gdd5")
+    #fi
     # Code of the function to be written from the FORTRAN code of SEIB
     geodatabiome = np.ma.zeros((geodataLAI.shape),np.int8) 
     for i in range(geodatabiome.shape[0]) :
@@ -855,7 +878,7 @@ if __name__ == '__main__':
                  , cmap="BrBG", masklmt=-5.0
                  )
 
-  biome_computed = compute_biome(to_plot.extradata[0],to_plot.dominantIndx)
+  biome_computed = compute_biome(to_plot.extradata[0],to_plot.dominantIndx,gdd0_in = to_plot.extradata[2], gdd5_in = to_plot.extradata[3])
   map_dataint(biome_computed,to_plot.lons,to_plot.lats, to_plot.path, "Biome Names", colorlist=[biomes_color_dict[biomes] for biomes in to_plot.biomedict], labels=to_plot.biomedict)
 
 
