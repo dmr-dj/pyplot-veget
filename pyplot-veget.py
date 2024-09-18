@@ -602,7 +602,7 @@ def load_extradata_SEIB(geodata_object,pathtoNPPdataset,data_arrayshape):
     # Need a split on this.
 
     for variabel in extradata_SEIB_list:
-      potential_files=glob.glob(dircontain_data+"/*"+variabel+".*")
+      potential_files=glob.glob(dircontain_data+"/*"+variabel+".*[txt|nc]")
       # Loop over potential datasets
       if len(potential_files) == 1 and os.path.splitext(potential_files[0])[1] == ".nc" : # This is a netCDF format, tryit
           print("Trying to open: "+potential_files[0])
