@@ -621,10 +621,10 @@ def load_extradata_SEIB(geodata_object,pathtoNPPdataset,data_arrayshape):
 
 #enddef
 
-def compute_biome(geodataLAI,geodataDominant,gdd0_in = None, gdd5_in = None):
+def compute_biome(geodataLAI,geodataDominant,gdd0_in, gdd5_in):
 
-    if ( not gdd0_in is None ) and ( not gdd5_in is None ):
-         print("provided with gdd0 and gdd5")
+    #if ( not gdd0_in is None ) and ( not gdd5_in is None ):
+     #    print("provided with gdd0 and gdd5")
     #fi
     # Code of the function to be written from the FORTRAN code of SEIB
     geodatabiome = np.ma.zeros((geodataLAI.shape),np.int8) 
@@ -632,7 +632,11 @@ def compute_biome(geodataLAI,geodataDominant,gdd0_in = None, gdd5_in = None):
         for j in range(geodatabiome.shape[1]) :
           if not np.ma.is_masked(geodataDominant[i,j]):			
             dominantgeo = geodataDominant[i,j] + 7
-            #print(geodataDominant[i,j], geodataLAI[i,j], dominantgeo)
+            #print(gdd0_in[i,j] )#geodataDominant[i,j], geodataLAI[i,j], dominantgeo)
+            if gdd0_in[i,j] <= 150 :
+               geodatabiome[i,j] = 1
+            if gdd5_in[i,j] <= 370 :
+               geodatabiome[i,j] = 2	
             if dominantgeo >= 1 and dominantgeo <= 5 :
                 # ~ case range(1, 5) :
                if geodataLAI[i,j]>= 2.5 :
@@ -878,7 +882,7 @@ if __name__ == '__main__':
                  , cmap="BrBG", masklmt=-5.0
                  )
 
-  biome_computed = compute_biome(to_plot.extradata[0],to_plot.dominantIndx,gdd0_in = to_plot.extradata[2], gdd5_in = to_plot.extradata[3])
+  biome_computed = compute_biome(to_plot.extradata[0],to_plot.dominantIndx,to_plot.extradata[2].T, to_plot.extradata[3].T)
   map_dataint(biome_computed,to_plot.lons,to_plot.lats, to_plot.path, "Biome Names", colorlist=[biomes_color_dict[biomes] for biomes in to_plot.biomedict], labels=to_plot.biomedict)
 
 
