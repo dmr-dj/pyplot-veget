@@ -482,11 +482,16 @@ def read_input_dataset_valuesperPFT( path_dataset, plot_type, pft_dict, data_map
     dst = n4.Dataset(path_dataset)
     n_pft = len(dst.variables['veget'][:]) # this variable contains an axis with values 0:12, so 13 PFTs
     vegfrac = dst.variables['maxvegetfrac'] # Vegetation Fraction, time, nvegtyp, lat,lon
-
+    lai_max = dst.variables['LAI']
+    npp = dst.variables['NPP']
     if ( mean_t_value != None ) and ( mean_time_value != 0 ):
         vegfrc = np.ma.mean(vegfrac[-mean_time_value:,:,:,:],axis=0)  # Taking mean of last time steps
+        laimax = np.ma.mean(lai_max[-mean_time_value:,:,:,:],axis=0)
+        NPP = np.ma.mean(npp[-mean_time_value:,:,:,:],axis=0)
     else:
         vegfrc = vegfrac[-1,:,:,:]  # Taking last time steps
+        laimax = lai_max[-1,:,:,:]
+        NPP = npp[-1,:,:,:]
     #endif
 
     # ~ print(" :: ", len(pft_list))
@@ -877,13 +882,18 @@ if __name__ == '__main__':
 
 
   # ~ data_lai = read_input_dataset_values("test-data/out_6k_new/out_lai_max.txt",plot_type, data_array)
-  map_dataflt(to_plot.extradata[0]
-                 ,to_plot.lons,to_plot.lats,"Ad Hoc plotting","lai"
-                 , cmap="BrBG", masklmt=-5.0
-                 )
-
-  biome_computed = compute_biome(to_plot.extradata[0],to_plot.dominantIndx,to_plot.extradata[2].T, to_plot.extradata[3].T)
-  map_dataint(biome_computed,to_plot.lons,to_plot.lats, to_plot.path, "Biome Names", colorlist=[biomes_color_dict[biomes] for biomes in to_plot.biomedict], labels=to_plot.biomedict)
+  #map_dataflt(to_plot.extradata[0]
+   #              ,to_plot.lons,to_plot.lats,"Ad Hoc plotting","lai"
+    #             , cmap="BrBG", masklmt=-5.0
+     #            )
+ 
+  if inputtypes.ORCHIDEE_plt == plot_type:
+    biome_computed = compute_biome(laimax,to_plot.dominantIndx,to_plot.extradata[2].T, to_plot.extradata[3].T)
+  if inputtypes.SEIB_plt == plot_type :
+     # ~ data_lai = read_input_dataset_values("test-data/out_6k_new/out_lai_max.txt",plot_type, data_array)
+    map_dataflt(to_plot.extradata[0],to_plot.lons,to_plot.lats,"Ad Hoc plotting","lai", cmap="BrBG", masklmt=-5.0)
+    biome_computed = compute_biome(to_plot.extradata[0],to_plot.dominantIndx,to_plot.extradata[2].T, to_plot.extradata[3].T)
+    map_dataint(biome_computed,to_plot.lons,to_plot.lats, to_plot.path, "Biome Names", colorlist=[biomes_color_dict[biomes] for biomes in to_plot.biomedict], labels=to_plot.biomedict)
 
 
 
