@@ -156,6 +156,7 @@ PFT_list_choices = {
 
 
 extradata_SEIB_list = ["lai_max","precipitation","gdd0","gdd5"]
+extradata_ORCHIDEE_list = ["LAI","NPP","gdd0","gdd5"]
 
 # Utilities functions ...
 # =======================
@@ -482,16 +483,16 @@ def read_input_dataset_valuesperPFT( path_dataset, plot_type, pft_dict, data_map
     dst = n4.Dataset(path_dataset)
     n_pft = len(dst.variables['veget'][:]) # this variable contains an axis with values 0:12, so 13 PFTs
     vegfrac = dst.variables['maxvegetfrac'] # Vegetation Fraction, time, nvegtyp, lat,lon
-    lai_max = dst.variables['LAI']
-    npp = dst.variables['NPP']
+#     lai_max = dst.variables['LAI']
+#     npp = dst.variables['NPP']
     if ( mean_t_value != None ) and ( mean_time_value != 0 ):
         vegfrc = np.ma.mean(vegfrac[-mean_time_value:,:,:,:],axis=0)  # Taking mean of last time steps
-        laimax = np.ma.mean(lai_max[-mean_time_value:,:,:,:],axis=0)
-        NPP = np.ma.mean(npp[-mean_time_value:,:,:,:],axis=0)
+#         laimax = np.ma.mean(lai_max[-mean_time_value:,:,:,:],axis=0)
+#         NPP = np.ma.mean(npp[-mean_time_value:,:,:,:],axis=0)
     else:
         vegfrc = vegfrac[-1,:,:,:]  # Taking last time steps
-        laimax = lai_max[-1,:,:,:]
-        NPP = npp[-1,:,:,:]
+#         laimax = lai_max[-1,:,:,:]
+#         NPP = npp[-1,:,:,:]
     #endif
 
     # ~ print(" :: ", len(pft_list))
@@ -598,6 +599,39 @@ def get_PFT_weights(data01,data02):
 
 #enddef get_PFT_weights
 
+def load_extradata_ORCHIDEE(geodata_object,pathtodataset,pathtogdd0,pathtogdd5,mean_t_value=None):
+
+
+    for variabel in extradata_ORCHIDEE_list:
+
+      if variabel == "gdd0":
+         dst = n4.Dataset(pathtogdd0)
+      elif variabel == "gdd5":
+         dst = n4.Dataset(pathtogdd5)
+      else: 
+         dst = n4.Dataset(pathtodataset)
+      #endif
+
+      datasetvar = dst.variables[variabel]
+      print("variabel",datasetvar.shape)
+
+      if len(datasetvar.shape) >= 4:
+
+         if ( mean_t_value != None ) and ( mean_time_value != 0 ):
+            gotten_data = np.ma.mean(datasetvar[-mean_time_value:,:,:,:],axis=0)
+         else:
+            gotten_data = datasetvar[-1,:,:,:]
+         #endif
+         gotten_data = np.squeeze(gotten_data)
+      else:
+            gotten_data = datasetvar[:,:,:]
+            gotten_data = np.squeeze(gotten_data)
+      #endif
+      geodata_object.add_extradata(gotten_data)
+      dst.close()
+    #endfor
+
+#enddef load_extradata_ORCHIDEE
 
 def load_extradata_SEIB(geodata_object,pathtoNPPdataset,data_arrayshape):
     # Get the directory where presumably the data
@@ -624,7 +658,7 @@ def load_extradata_SEIB(geodata_object,pathtoNPPdataset,data_arrayshape):
       #fi
     #endfor
 
-#enddef
+#enddef load_extradata_SEIB
 
 def compute_biome(geodataLAI,geodataDominant,gdd0_in, gdd5_in):
 
@@ -829,6 +863,8 @@ if __name__ == '__main__':
     if got_args.loadextras_flg:
       if inputtypes.SEIB_plt in plot_type:
          extra_dataloded = load_extradata_SEIB(full_data_list[-1],path_dataset,data_array)
+      elif inputtypes.ORCHIDEE_plt in plot_type:
+         extra_dataloded = load_extradata_ORCHIDEE(full_data_list[-1],path_dataset,"test-data/tasAdjust_CDFt-L-1V-0L_temsgHOL006k-38yrs-f32-gdd0.nc","test-data/tasAdjust_CDFt-L-1V-0L_temsgHOL006k-38yrs-f32-gdd5.nc")
       #endif
     #endif
 
@@ -888,7 +924,9 @@ if __name__ == '__main__':
      #            )
  
   if inputtypes.ORCHIDEE_plt == plot_type:
-    biome_computed = compute_biome(laimax,to_plot.dominantIndx,to_plot.extradata[2].T, to_plot.extradata[3].T)
+    
+    biome_computed = compute_biome(to_plot.extradata[0],to_plot.dominantIndx,to_plot.extradata[2].T, to_plot.extradata[3].T)
+    map_dataint(biome_computed,to_plot.lons,to_plot.lats, to_plot.path, "Biome Names", colorlist=[biomes_color_dict[biomes] for biomes in to_plot.biomedict], labels=to_plot.biomedict)
   if inputtypes.SEIB_plt == plot_type :
      # ~ data_lai = read_input_dataset_values("test-data/out_6k_new/out_lai_max.txt",plot_type, data_array)
     map_dataflt(to_plot.extradata[0],to_plot.lons,to_plot.lats,"Ad Hoc plotting","lai", cmap="BrBG", masklmt=-5.0)
