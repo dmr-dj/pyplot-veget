@@ -156,7 +156,7 @@ PFT_list_choices = {
 
 
 extradata_SEIB_list = ["lai_max","precipitation","gdd0","gdd5"]
-extradata_ORCHIDEE_list = ["LAI","NPP","gdd0","gdd5"]
+extradata_ORCHIDEE_list = ["LAI","NPP","gdd0","gdd5","maxvegetfrac"]
 
 # Utilities functions ...
 # =======================
@@ -613,14 +613,14 @@ def load_extradata_ORCHIDEE(geodata_object,pathtodataset,pathtogdd0,pathtogdd5,m
       #endif
 
       datasetvar = dst.variables[variabel]
-      print("variabel",datasetvar.shape)
+      print("variabel",datasetvar.shape,variabel)
 
       if len(datasetvar.shape) >= 4:
 
          if ( mean_t_value != None ) and ( mean_time_value != 0 ):
             gotten_data = np.ma.mean(datasetvar[-mean_time_value:,:,:,:],axis=0)
          else:
-            gotten_data = datasetvar[-1,:,:,:]
+            gotten_data = datasetvar[:,:,:,:]
          #endif
          gotten_data = np.squeeze(gotten_data)
       else:
@@ -925,8 +925,17 @@ if __name__ == '__main__':
  
   if inputtypes.ORCHIDEE_plt == plot_type:
     
-    biome_computed = compute_biome(to_plot.extradata[0],to_plot.dominantIndx,to_plot.extradata[2].T, to_plot.extradata[3].T)
+    # with ORCHIDEE extradata[0] is LAI per PFT per time (time,pft,lon,lat) 
+    # print("lai",to_plot.extradata[0].shape)
+    # print("maxvegfrac",to_plot.extradata[4].shape)
+    lai_max_OR = np.ma.max(np.ma.sum(np.ma.masked_greater(to_plot.extradata[0]*to_plot.extradata[4],1000),axis=1),axis=0)
+    # print("lai_max_OR",lai_max_OR.shape)
+    biome_computed = compute_biome(lai_max_OR.T[:,::-1],to_plot.dominantIndx-2,to_plot.extradata[2].T, to_plot.extradata[3].T)
     map_dataint(biome_computed,to_plot.lons,to_plot.lats, to_plot.path, "Biome Names", colorlist=[biomes_color_dict[biomes] for biomes in to_plot.biomedict], labels=to_plot.biomedict)
+    map_dataflt(lai_max_OR.T[:,::-1],to_plot.lons,to_plot.lats,"Ad Hoc plotting","lai", cmap="BrBG", masklmt=-5.0)
+#    map_dataflt(to_plot.extradata[2].T,to_plot.lons,to_plot.lats,"Ad Hoc plotting","gdd0", cmap="BrBG", masklmt=-5.0)
+#    map_dataflt(to_plot.extradata[3].T,to_plot.lons,to_plot.lats,"Ad Hoc plotting","gdd5", cmap="BrBG", masklmt=-5.0)
+
   if inputtypes.SEIB_plt == plot_type :
      # ~ data_lai = read_input_dataset_values("test-data/out_6k_new/out_lai_max.txt",plot_type, data_array)
     map_dataflt(to_plot.extradata[0],to_plot.lons,to_plot.lats,"Ad Hoc plotting","lai", cmap="BrBG", masklmt=-5.0)
