@@ -4,7 +4,7 @@
    "tropical evergreen forest"               : "red",
    "tropical deciduous forest"               : "darkred",
    "temperate conifer forest"                : "yellowgreen",
-   "temperate broad-leaved evergreen forest" : "olive",
+   "temperate broad-leaved evergreen forest" : "chocolate",
    "temperate deciduous forest"              : "lime",
    "boreal evergreen forest"                 : "darkgreen",
    "boreal deciduous forest"                 : "blue", 

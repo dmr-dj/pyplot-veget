@@ -675,7 +675,8 @@ def compute_biome(geodataLAI,geodataDominant,gdd0_in, gdd5_in):
             if gdd0_in[i,j] <= 150 :
                geodatabiome[i,j] = 1
             if gdd5_in[i,j] <= 370 :
-               geodatabiome[i,j] = 2	
+               geodatabiome[i,j] = 2
+            """	
             if dominantgeo >= 1 and dominantgeo <= 5 :
                 # ~ case range(1, 5) :
                if geodataLAI[i,j]>= 2.5 :
@@ -686,7 +687,7 @@ def compute_biome(geodataLAI,geodataDominant,gdd0_in, gdd5_in):
                   geodatabiome[i,j] = 11
                else :
                   geodatabiome[i,j] = 12
-               #endif
+               endif
             elif dominantgeo == 6 :   
                if geodataLAI[i,j]>= 2.5 :
                   geodatabiome[i,j] = 4
@@ -697,7 +698,8 @@ def compute_biome(geodataLAI,geodataDominant,gdd0_in, gdd5_in):
                else :
                   geodatabiome[i,j] = 12
                #endif
-            elif dominantgeo == 7 :
+            """
+            if dominantgeo == 7 :
                if geodataLAI[i,j]>= 1.5 :
                   geodatabiome[i,j] = 5
                elif geodataLAI[i,j]>= 1.0 :
@@ -727,7 +729,7 @@ def compute_biome(geodataLAI,geodataDominant,gdd0_in, gdd5_in):
                else :
                   geodatabiome[i,j] = 12
                 #endif
-            elif dominantgeo >= 10 and dominantgeo <= 12 :
+            elif dominantgeo == 10 : # or dominantgeo <= 12 :
                if geodataLAI[i,j]>= 1.5 :
                   geodatabiome[i,j] = 8
                elif geodataLAI[i,j]>= 1.0 :
@@ -736,9 +738,8 @@ def compute_biome(geodataLAI,geodataDominant,gdd0_in, gdd5_in):
                   geodatabiome[i,j] = 11
                else :
                   geodatabiome[i,j] = 12
-
-            elif dominantgeo >= 13 or dominantgeo <= 14 :
-               if geodataLAI[i,j]>= 2.5 : 
+            elif dominantgeo >= 11 or dominantgeo <= 12 :
+               if geodataLAI[i,j]>= 2.5 :
                   geodatabiome[i,j] = 9
                elif geodataLAI[i,j]>= 1.5 :
                   geodatabiome[i,j] = 10
@@ -746,11 +747,11 @@ def compute_biome(geodataLAI,geodataDominant,gdd0_in, gdd5_in):
                   geodatabiome[i,j] = 11
                else :
                   geodatabiome[i,j] = 12
-            elif dominantgeo >= 15 and dominantgeo <= 16 :
+            elif dominantgeo >= 13 and dominantgeo <= 14 :
                if geodataLAI[i,j]>= 0.2 :
                   geodatabiome[i,j] = 11
                else :
-                  geodatabiome[i,j] = 12
+                  geodatabiombiome[i,j] = 12
       
                 #endif             
              #endif
@@ -864,7 +865,7 @@ if __name__ == '__main__':
       if inputtypes.SEIB_plt in plot_type:
          extra_dataloded = load_extradata_SEIB(full_data_list[-1],path_dataset,data_array)
       elif inputtypes.ORCHIDEE_plt in plot_type:
-         extra_dataloded = load_extradata_ORCHIDEE(full_data_list[-1],path_dataset,"test-data/tasAdjust_CDFt-L-1V-0L_temsgHOL006k-38yrs-f32-gdd0.nc","test-data/tasAdjust_CDFt-L-1V-0L_temsgHOL006k-38yrs-f32-gdd5.nc")
+         extra_dataloded = load_extradata_ORCHIDEE(full_data_list[-1],path_dataset,"/home/acclimate/ibertrix/pyplot-veget/tas/tasAdjust_CDFt-L-1V-0L_temsgHOL006k-38yrs-f32-gdd0.nc","/home/acclimate/ibertrix/pyplot-veget/tas/tasAdjust_CDFt-L-1V-0L_temsgHOL006k-38yrs-f32-gdd5.nc")
       #endif
     #endif
 
@@ -930,7 +931,7 @@ if __name__ == '__main__':
     # print("maxvegfrac",to_plot.extradata[4].shape)
     lai_max_OR = np.ma.max(np.ma.sum(np.ma.masked_greater(to_plot.extradata[0]*to_plot.extradata[4],1000),axis=1),axis=0)
     # print("lai_max_OR",lai_max_OR.shape)
-    biome_computed = compute_biome(lai_max_OR.T[:,::-1],to_plot.dominantIndx-2,to_plot.extradata[2].T, to_plot.extradata[3].T)
+    biome_computed = compute_biome(lai_max_OR.T[:,::-1],to_plot.dominantIndx-3,to_plot.extradata[2].T, to_plot.extradata[3].T) #-3 because ORCHIDEE dominants pft begin at 0
     map_dataint(biome_computed,to_plot.lons,to_plot.lats, to_plot.path, "Biome Names", colorlist=[biomes_color_dict[biomes] for biomes in to_plot.biomedict], labels=to_plot.biomedict)
     map_dataflt(lai_max_OR.T[:,::-1],to_plot.lons,to_plot.lats,"Ad Hoc plotting","lai", cmap="BrBG", masklmt=-5.0)
 #    map_dataflt(to_plot.extradata[2].T,to_plot.lons,to_plot.lats,"Ad Hoc plotting","gdd0", cmap="BrBG", masklmt=-5.0)
