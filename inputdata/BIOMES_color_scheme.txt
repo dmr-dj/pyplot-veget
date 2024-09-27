@@ -8,7 +8,7 @@
    "temperate deciduous forest"              : "lime",
    "boreal evergreen forest"                 : "darkgreen",
    "boreal deciduous forest"                 : "blue", 
-   "xeric woodland / scrub"                  : "grey",
+   "woodland / scrub"                        : "grey",
    "Grassland / steppe / Savanna"            : "bisque", 
    "Desert"                                  : "orange"
 }

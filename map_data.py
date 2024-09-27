@@ -209,7 +209,9 @@ def map_dataint(var_map, lons, lats, title, legend_label, colorlist=None,
 
     cmap.set_under(color="grey")
 
-    fig, ax = plt.subplots(figsize=(10,5), subplot_kw=dict(projection=crs))
+    fig, ax = plt.subplots(figsize=(10,5), subplot_kw=dict(projection=crs), layout='constrained')
+
+    fig.subplots_adjust(left=-0.2)
 
     ax.set_global()
     ax.set_extent(extent)
@@ -219,15 +221,15 @@ def map_dataint(var_map, lons, lats, title, legend_label, colorlist=None,
     mesh = ax.pcolormesh(lons, lats, var_map, cmap=cmap, transform=crs,
                           vmin=min_bounds-0.5, vmax=max_bounds+0.5)
 
-    cbar = plt.colorbar(mesh, orientation='vertical', shrink=0.9,
+    cbar = plt.colorbar(mesh, orientation='vertical', shrink=0.8,
                         ticks=fix_bounds)
 
 
     if labels != None:
         cbar.ax.set_yticklabels(labels[round(min_bounds):round(max_bounds)+1])
 
-    cbar.ax.tick_params(labelsize='x-large')
-    cbar.set_label(label=legend_label,fontsize='x-large')
+    cbar.ax.tick_params(labelsize='large')
+    cbar.set_label(label=legend_label,fontsize='large')
 
     # From jyp's script
 

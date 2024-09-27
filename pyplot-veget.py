@@ -144,7 +144,7 @@ PFT_list_CARAIB = ["C3h","C3d","C4","BSg artic shrubs",                   # 4
                    ]
 biome_list = ["Water","Polar desert", "Arctic/Alpine-tundra", "tropical evergreen forest", "tropical deciduous forest",
               "temperate conifer forest", "temperate broad-leaved evergreen forest", "temperate deciduous forest", 
-              "boreal evergreen forest", "boreal deciduous forest", "xeric woodland / scrub", "Grassland / steppe / Savanna", "Desert"]
+              "boreal evergreen forest", "boreal deciduous forest", "woodland / scrub", "Grassland / steppe / Savanna", "Desert"]
 PFT_list_choices = {
         inputtypes.SEIB_plt          : PFT_list_SEIB,
         inputtypes.ORCHIDEE_plt      : PFT_list_ORCHIDEE,
@@ -599,15 +599,29 @@ def get_PFT_weights(data01,data02):
 
 #enddef get_PFT_weights
 
-def load_extradata_ORCHIDEE(geodata_object,pathtodataset,pathtogdd0,pathtogdd5,mean_t_value=None):
+def load_extradata_ORCHIDEE(geodata_object,pathtodataset,pathtogdd0=None,pathtogdd5=None,mean_t_value=None):
 
 
     for variabel in extradata_ORCHIDEE_list:
 
       if variabel == "gdd0":
-         dst = n4.Dataset(pathtogdd0)
+         if ( pathtogdd0 != None ):
+             dst = n4.Dataset(pathtogdd0)
+         else:
+             # Get the directory where presumably the data
+             dircontain_data=os.path.dirname(pathtodataset)
+             potential_files=glob.glob(dircontain_data+"/*"+variabel+".*nc")
+             dst = n4.Dataset(potential_files[0])
+         #endif    
       elif variabel == "gdd5":
-         dst = n4.Dataset(pathtogdd5)
+         if ( pathtogdd5 != None ):
+             dst = n4.Dataset(pathtogdd5)
+         else:
+             # Get the directory where presumably the data
+             dircontain_data=os.path.dirname(pathtodataset)
+             potential_files=glob.glob(dircontain_data+"/*"+variabel+".*nc")
+             dst = n4.Dataset(potential_files[0])
+         #endif    
       else: 
          dst = n4.Dataset(pathtodataset)
       #endif
@@ -718,7 +732,7 @@ def compute_biome(geodataLAI,geodataDominant,gdd0_in, gdd5_in, pft_list):
                else :
                   geodatabiome[i,j] = 12  # "Desert"
                #endif
-            elif dominantgeo == "Med." : # 8 for ORCHIDEE this is TeBEg
+            elif dominantgeo == "Med." or dominantgeo == "TeBEg": # 8 for ORCHIDEE this is TeBEg
                if geodataLAI[i,j]>= 2.5 :
                   geodatabiome[i,j] = 6 # Temperate broad-leaved evergreen forest
                elif geodataLAI[i,j]>= 1.5 :
@@ -763,7 +777,13 @@ def compute_biome(geodataLAI,geodataDominant,gdd0_in, gdd5_in, pft_list):
                   geodatabiome[i,j] = 12
       
                 #endif             
+            elif dominantgeo == "solnu" :
+                geodatabiome[i,j] = 12
              #endif
+          if geodatabiome[i,j] == -99:
+              print("PROBLEM in biomecompute", dominantgeo, geodataLAI[i,j])
+              geodatabiome[i,j] = 3
+          #endif
           #endif
         #endfor
     #endfor
@@ -874,7 +894,8 @@ if __name__ == '__main__':
       if inputtypes.SEIB_plt in plot_type:
          extra_dataloded = load_extradata_SEIB(full_data_list[-1],path_dataset,data_array)
       elif inputtypes.ORCHIDEE_plt in plot_type:
-         extra_dataloded = load_extradata_ORCHIDEE(full_data_list[-1],path_dataset,"/home/acclimate/ibertrix/pyplot-veget/tas/tasAdjust_CDFt-L-1V-0L_temsgHOL006k-38yrs-f32-gdd0.nc","/home/acclimate/ibertrix/pyplot-veget/tas/tasAdjust_CDFt-L-1V-0L_temsgHOL006k-38yrs-f32-gdd5.nc")
+         # extra_dataloded = load_extradata_ORCHIDEE(full_data_list[-1],path_dataset,"test-data/out_6k/tasAdjust_CDFt-L-1V-0L_temsgHOL006k-38yrs-f32-gdd0.nc","test-data/out_6k/tasAdjust_CDFt-L-1V-0L_temsgHOL006k-38yrs-f32-gdd5.nc")
+         extra_dataloded = load_extradata_ORCHIDEE(full_data_list[-1],path_dataset)
       #endif
     #endif
 
@@ -940,7 +961,7 @@ if __name__ == '__main__':
     # print("maxvegfrac",to_plot.extradata[4].shape)
     lai_max_OR = np.ma.max(np.ma.sum(np.ma.masked_greater(to_plot.extradata[0]*to_plot.extradata[4],1000),axis=1),axis=0)
     # print("lai_max_OR",lai_max_OR.shape)
-    biome_computed = compute_biome(lai_max_OR.T[:,::-1],to_plot.dominantIndx-3,to_plot.extradata[2].T, to_plot.extradata[3].T,to_plot.pftdict) #-3 because ORCHIDEE dominants pft begin at 0
+    biome_computed = compute_biome(lai_max_OR.T[:,::-1],to_plot.dominantIndx,to_plot.extradata[2].T, to_plot.extradata[3].T,to_plot.pftdict) #-3 because ORCHIDEE dominants pft begin at 0
     map_dataint(biome_computed,to_plot.lons,to_plot.lats, to_plot.path, "Biome Names", colorlist=[biomes_color_dict[biomes] for biomes in to_plot.biomedict], labels=to_plot.biomedict)
     map_dataflt(lai_max_OR.T[:,::-1],to_plot.lons,to_plot.lats,"Ad Hoc plotting","lai", cmap="BrBG", masklmt=-5.0)
 #    map_dataflt(to_plot.extradata[2].T,to_plot.lons,to_plot.lats,"Ad Hoc plotting","gdd0", cmap="BrBG", masklmt=-5.0)
