@@ -660,68 +660,77 @@ def load_extradata_SEIB(geodata_object,pathtoNPPdataset,data_arrayshape):
 
 #enddef load_extradata_SEIB
 
-def compute_biome(geodataLAI,geodataDominant,gdd0_in, gdd5_in):
+def compute_biome(geodataLAI,geodataDominant,gdd0_in, gdd5_in, pft_list):
 
     #if ( not gdd0_in is None ) and ( not gdd5_in is None ):
      #    print("provided with gdd0 and gdd5")
     #fi
     # Code of the function to be written from the FORTRAN code of SEIB
+
+    # Output variable with biome codes mapping to:
+    #  ["Water","Polar desert", "Arctic/Alpine-tundra", "tropical evergreen forest", "tropical deciduous forest",
+    #   "temperate conifer forest", "temperate broad-leaved evergreen forest", "temperate deciduous forest", 
+    #   "boreal evergreen forest", "boreal deciduous forest", "xeric woodland / scrub", "Grassland / steppe / Savanna", "Desert"]
     geodatabiome = np.ma.zeros((geodataLAI.shape),np.int8) 
+
     for i in range(geodatabiome.shape[0]) :
         for j in range(geodatabiome.shape[1]) :
           if not np.ma.is_masked(geodataDominant[i,j]):			
-            dominantgeo = geodataDominant[i,j] + 7
-            #print(gdd0_in[i,j] )#geodataDominant[i,j], geodataLAI[i,j], dominantgeo)
-            if gdd0_in[i,j] <= 150 :
+            # If point not masked, I can compute ...
+
+            geodatabiome[i,j] = -99
+
+            dominantgeo = pft_list[geodataDominant[i,j]]
+
+            if gdd0_in[i,j] <= 150 : # then Polar Desert
                geodatabiome[i,j] = 1
-            if gdd5_in[i,j] <= 370 :
+            elif gdd5_in[i,j] <= 370 : # Arctic/Alpine-tundra
                geodatabiome[i,j] = 2
-            """	
-            if dominantgeo >= 1 and dominantgeo <= 5 :
-                # ~ case range(1, 5) :
-               if geodataLAI[i,j]>= 2.5 :
-                  geodatabiome[i,j] = 3
-               elif geodataLAI[i,j]>= 1.5 :
-                  geodatabiome[i,j] = 10
-               elif geodataLAI[i,j]>= 0.2 :
-                  geodatabiome[i,j] = 11
-               else :
-                  geodatabiome[i,j] = 12
-               endif
-            elif dominantgeo == 6 :   
-               if geodataLAI[i,j]>= 2.5 :
-                  geodatabiome[i,j] = 4
-               elif geodataLAI[i,j]>= 1.5 :
-                  geodatabiome[i,j] = 10
-               elif geodataLAI[i,j]>= 0.2 :
-                  geodatabiome[i,j] = 11
-               else :
-                  geodatabiome[i,j] = 12
-               #endif
-            """
-            if dominantgeo == 7 :
+
+#            if dominantgeo >= 1 and dominantgeo <= 5 : # 1->5 tropical evergreen PFTs
+#               if geodataLAI[i,j]>= 2.5 :
+#                  geodatabiome[i,j] = 3
+#               elif geodataLAI[i,j]>= 1.5 :
+#                  geodatabiome[i,j] = 10
+#               elif geodataLAI[i,j]>= 0.2 :
+#                  geodatabiome[i,j] = 11
+#               else :
+#                  geodatabiome[i,j] = 12
+#               endif
+#            elif dominantgeo == 6 : # Tropical summergreen PFT  
+#               if geodataLAI[i,j]>= 2.5 :
+#                  geodatabiome[i,j] = 4
+#               elif geodataLAI[i,j]>= 1.5 :
+#                  geodatabiome[i,j] = 10
+#               elif geodataLAI[i,j]>= 0.2 :
+#                  geodatabiome[i,j] = 11
+#               else :
+#                  geodatabiome[i,j] = 12
+#               #endif
+            
+            elif dominantgeo == "TeNEg" : # 7
                if geodataLAI[i,j]>= 1.5 :
-                  geodatabiome[i,j] = 5
+                  geodatabiome[i,j] = 5   #"Temperate conifer forest"
                elif geodataLAI[i,j]>= 1.0 :
-                  geodatabiome[i,j] = 10
+                  geodatabiome[i,j] = 10  # "Woodland / Scrub"
                elif geodataLAI[i,j]>= 0.2 :
-                  geodatabiome[i,j] = 11
+                  geodatabiome[i,j] = 11  # "Grassland/Steppe/Savannah"
                else :
-                  geodatabiome[i,j] = 12
+                  geodatabiome[i,j] = 12  # "Desert"
                #endif
-            elif dominantgeo == 8 :
+            elif dominantgeo == "Med." : # 8 for ORCHIDEE this is TeBEg
                if geodataLAI[i,j]>= 2.5 :
-                  geodatabiome[i,j] = 6
+                  geodatabiome[i,j] = 6 # Temperate broad-leaved evergreen forest
                elif geodataLAI[i,j]>= 1.5 :
-                  geodatabiome[i,j] = 10
+                  geodatabiome[i,j] = 10 # Woodland / Scrub
                elif geodataLAI[i,j]>= 0.2 :
-                  geodatabiome[i,j] = 11
+                  geodatabiome[i,j] = 11 # Grassland ...
                else :
-                  geodatabiome[i,j] = 12
+                  geodatabiome[i,j] = 12 # Desert
                #endif
-            elif dominantgeo == 9 :                
+            elif dominantgeo == "TeBSg" : # 9
                if geodataLAI[i,j]>= 2.5 :
-                  geodatabiome[i,j] = 7
+                  geodatabiome[i,j] = 7 # Temperate deciduous forest
                elif geodataLAI[i,j]>= 1.5 :
                   geodatabiome[i,j] = 10
                elif geodataLAI[i,j]>= 0.2 :
@@ -729,29 +738,29 @@ def compute_biome(geodataLAI,geodataDominant,gdd0_in, gdd5_in):
                else :
                   geodatabiome[i,j] = 12
                 #endif
-            elif dominantgeo == 10 : # or dominantgeo <= 12 :
+            elif dominantgeo == "BNEg" : # 10
                if geodataLAI[i,j]>= 1.5 :
-                  geodatabiome[i,j] = 8
+                  geodatabiome[i,j] = 8 # Boreal Evergreen forest
                elif geodataLAI[i,j]>= 1.0 :
                   geodatabiome[i,j] = 10
                elif geodataLAI[i,j]>= 0.2 :
                   geodatabiome[i,j] = 11
                else :
                   geodatabiome[i,j] = 12
-            elif dominantgeo >= 11 or dominantgeo <= 12 :
+            elif dominantgeo == "BBSg" or dominantgeo == "BNSg" : # 11 ou 12
                if geodataLAI[i,j]>= 2.5 :
-                  geodatabiome[i,j] = 9
+                  geodatabiome[i,j] = 9 # Boreal deciduous forest
                elif geodataLAI[i,j]>= 1.5 :
                   geodatabiome[i,j] = 10
                elif geodataLAI[i,j]>= 0.2 :
                   geodatabiome[i,j] = 11
                else :
                   geodatabiome[i,j] = 12
-            elif dominantgeo >= 13 and dominantgeo <= 14 :
+            elif "C3" in dominantgeo or "C4" in dominantgeo : # 13 ou 14
                if geodataLAI[i,j]>= 0.2 :
-                  geodatabiome[i,j] = 11
+                  geodatabiome[i,j] = 11 # Grassland ....
                else :
-                  geodatabiombiome[i,j] = 12
+                  geodatabiome[i,j] = 12
       
                 #endif             
              #endif
@@ -931,7 +940,7 @@ if __name__ == '__main__':
     # print("maxvegfrac",to_plot.extradata[4].shape)
     lai_max_OR = np.ma.max(np.ma.sum(np.ma.masked_greater(to_plot.extradata[0]*to_plot.extradata[4],1000),axis=1),axis=0)
     # print("lai_max_OR",lai_max_OR.shape)
-    biome_computed = compute_biome(lai_max_OR.T[:,::-1],to_plot.dominantIndx-3,to_plot.extradata[2].T, to_plot.extradata[3].T) #-3 because ORCHIDEE dominants pft begin at 0
+    biome_computed = compute_biome(lai_max_OR.T[:,::-1],to_plot.dominantIndx-3,to_plot.extradata[2].T, to_plot.extradata[3].T,to_plot.pftdict) #-3 because ORCHIDEE dominants pft begin at 0
     map_dataint(biome_computed,to_plot.lons,to_plot.lats, to_plot.path, "Biome Names", colorlist=[biomes_color_dict[biomes] for biomes in to_plot.biomedict], labels=to_plot.biomedict)
     map_dataflt(lai_max_OR.T[:,::-1],to_plot.lons,to_plot.lats,"Ad Hoc plotting","lai", cmap="BrBG", masklmt=-5.0)
 #    map_dataflt(to_plot.extradata[2].T,to_plot.lons,to_plot.lats,"Ad Hoc plotting","gdd0", cmap="BrBG", masklmt=-5.0)
@@ -940,8 +949,10 @@ if __name__ == '__main__':
   if inputtypes.SEIB_plt == plot_type :
      # ~ data_lai = read_input_dataset_values("test-data/out_6k_new/out_lai_max.txt",plot_type, data_array)
     map_dataflt(to_plot.extradata[0],to_plot.lons,to_plot.lats,"Ad Hoc plotting","lai", cmap="BrBG", masklmt=-5.0)
-    biome_computed = compute_biome(to_plot.extradata[0],to_plot.dominantIndx,to_plot.extradata[2].T, to_plot.extradata[3].T)
+    biome_computed = compute_biome(to_plot.extradata[0],to_plot.dominantIndx,to_plot.extradata[2].T, to_plot.extradata[3].T,to_plot.pftdict)
     map_dataint(biome_computed,to_plot.lons,to_plot.lats, to_plot.path, "Biome Names", colorlist=[biomes_color_dict[biomes] for biomes in to_plot.biomedict], labels=to_plot.biomedict)
+    map_dataflt(to_plot.extradata[2].T,to_plot.lons,to_plot.lats,"Ad Hoc plotting","gdd0", cmap="BrBG", masklmt=-5.0)
+    map_dataflt(to_plot.extradata[3].T,to_plot.lons,to_plot.lats,"Ad Hoc plotting","gdd5", cmap="BrBG", masklmt=-5.0)
 
 
 
