@@ -964,6 +964,13 @@ if __name__ == '__main__':
     minlaimaxOR = np.ma.min(lai_max_OR)
     maxlaimaxOR = np.ma.max(lai_max_OR)
     map_dataflt(lai_max_OR.T[:,::-1]/maxlaimaxOR,to_plot.lons,to_plot.lats,""+str(minlaimaxOR)+" | " +str(maxlaimaxOR),"lai/laimax", cmap="BrBG_r", masklmt=-5.0)
+
+    # For the histogram in LAI values something be like ...
+    data_flat = np.ma.ravel(lai_max_OR)
+    bin_w = 1
+    plt.hist(data_flat, bins=range(round(np.ma.min(data_flat)),round(np.ma.max(data_flat))+bin_w,bin_w))
+    plt.show()
+
     # print("lai_max_OR",lai_max_OR.shape)
     biome_computed = compute_biome(lai_max_OR.T[:,::-1],to_plot.dominantIndx,to_plot.extradata[2].T, to_plot.extradata[3].T,to_plot.pftdict) #-3 because ORCHIDEE dominants pft begin at 0
     map_dataint(biome_computed,to_plot.lons,to_plot.lats, to_plot.path, "Biome Names", colorlist=[biomes_color_dict[biomes] for biomes in to_plot.biomedict], labels=to_plot.biomedict)
@@ -976,6 +983,13 @@ if __name__ == '__main__':
     minlaimaxSEIB = np.ma.min(to_plot.extradata[0])
     maxlaimaxSEIB = np.ma.max(to_plot.extradata[0])
     map_dataflt(to_plot.extradata[0]/maxlaimaxSEIB,to_plot.lons,to_plot.lats,""+str(minlaimaxSEIB)+" | " +str(maxlaimaxSEIB),"lai/laimax", cmap="BrBG_r", masklmt=-5.0)
+
+    # For the histogram in LAI values something be like ...
+    # data_flat = np.ma.ravel(to_plot.extradata[0])
+    # bin_w = 1
+    # plt.hist(data_flat, bins=range(round(np.ma.min(data_flat)),round(np.ma.max(data_flat))+bin_w,bin_w))
+    # plt.show()
+
     biome_computed = compute_biome(to_plot.extradata[0],to_plot.dominantIndx,to_plot.extradata[2].T, to_plot.extradata[3].T,to_plot.pftdict)
     map_dataint(biome_computed,to_plot.lons,to_plot.lats, to_plot.path, "Biome Names", colorlist=[biomes_color_dict[biomes] for biomes in to_plot.biomedict], labels=to_plot.biomedict)
     map_dataflt(to_plot.extradata[2].T,to_plot.lons,to_plot.lats,"Ad Hoc plotting","gdd0", cmap="BrBG", masklmt=-5.0)
@@ -1024,6 +1038,7 @@ if __name__ == '__main__':
 
 
 #endif main
+
 
 
 # The End of All Things (op. cit.)
