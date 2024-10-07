@@ -960,6 +960,10 @@ if __name__ == '__main__':
     # print("lai",to_plot.extradata[0].shape)
     # print("maxvegfrac",to_plot.extradata[4].shape)
     lai_max_OR = np.ma.max(np.ma.sum(np.ma.masked_greater(to_plot.extradata[0]*to_plot.extradata[4],1000),axis=1),axis=0)
+    lai_max_OR = np.ma.masked_greater(lai_max_OR,10.0)
+    minlaimaxOR = np.ma.min(lai_max_OR)
+    maxlaimaxOR = np.ma.max(lai_max_OR)
+    map_dataflt(lai_max_OR.T[:,::-1]/maxlaimaxOR,to_plot.lons,to_plot.lats,""+str(minlaimaxOR)+" | " +str(maxlaimaxOR),"lai/laimax", cmap="BrBG_r", masklmt=-5.0)
     # print("lai_max_OR",lai_max_OR.shape)
     biome_computed = compute_biome(lai_max_OR.T[:,::-1],to_plot.dominantIndx,to_plot.extradata[2].T, to_plot.extradata[3].T,to_plot.pftdict) #-3 because ORCHIDEE dominants pft begin at 0
     map_dataint(biome_computed,to_plot.lons,to_plot.lats, to_plot.path, "Biome Names", colorlist=[biomes_color_dict[biomes] for biomes in to_plot.biomedict], labels=to_plot.biomedict)
@@ -969,7 +973,9 @@ if __name__ == '__main__':
 
   if inputtypes.SEIB_plt == plot_type :
      # ~ data_lai = read_input_dataset_values("test-data/out_6k_new/out_lai_max.txt",plot_type, data_array)
-    map_dataflt(to_plot.extradata[0],to_plot.lons,to_plot.lats,"Ad Hoc plotting","lai", cmap="BrBG", masklmt=-5.0)
+    minlaimaxSEIB = np.ma.min(to_plot.extradata[0])
+    maxlaimaxSEIB = np.ma.max(to_plot.extradata[0])
+    map_dataflt(to_plot.extradata[0]/maxlaimaxSEIB,to_plot.lons,to_plot.lats,""+str(minlaimaxSEIB)+" | " +str(maxlaimaxSEIB),"lai/laimax", cmap="BrBG_r", masklmt=-5.0)
     biome_computed = compute_biome(to_plot.extradata[0],to_plot.dominantIndx,to_plot.extradata[2].T, to_plot.extradata[3].T,to_plot.pftdict)
     map_dataint(biome_computed,to_plot.lons,to_plot.lats, to_plot.path, "Biome Names", colorlist=[biomes_color_dict[biomes] for biomes in to_plot.biomedict], labels=to_plot.biomedict)
     map_dataflt(to_plot.extradata[2].T,to_plot.lons,to_plot.lats,"Ad Hoc plotting","gdd0", cmap="BrBG", masklmt=-5.0)
