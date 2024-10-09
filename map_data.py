@@ -360,11 +360,13 @@ def plot_barsInLON_int(colorlist,llat,llon1,llon2,lats_array,lons_array
 
 
 
-def plot_histo(data_flat,bins_w='auto', colors='orange'):
+def plot_histo(data_flat,bins_w='auto', colors='orange',ymin=0,ymax=1800):
 
   fig, ax = plt.subplots(figsize=(10,5))
   # ax.hist(data_flat, bins=range(round(np.ma.min(data_flat)),round(np.ma.max(data_flat))+bins_w,bins_w))
   ax.hist(data_flat, bins=bins_w, color=colors, edgecolor='black')
+  ax.set_ylim([ymin, ymax])
+  
   fig.show()
 
 #enddef

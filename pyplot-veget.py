@@ -941,7 +941,7 @@ if __name__ == '__main__':
       data_toPlotnbdominant = np.ma.masked_values(data_not_masked,0)
 
       map_dataint(data_toPlotnbdominant,to_plot.lons,to_plot.lats,to_plot.path,"limit="+str(limit_npp_value)
-                 , colorlist=["darkgreen","bisque","coral","darkred","black"]
+                 , colorlist=["darkgreen","lime","bisque","coral","darkred","violet","black"]
                  )
     #endif
 
