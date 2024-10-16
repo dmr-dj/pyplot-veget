@@ -642,6 +642,7 @@ def load_extradata_ORCHIDEE(geodata_object,pathtodataset,pathtogdd0=None,pathtog
             gotten_data = np.squeeze(gotten_data)
       #endif
       geodata_object.add_extradata(gotten_data)
+      print(variabel,"is in position ::",len(geodata_object.extradata))
       dst.close()
     #endfor
 
@@ -934,6 +935,42 @@ if __name__ == '__main__':
                  ,"PFT name", colorlist=[pft_color_dict[pft] for pft in to_plot.pftdict]
                  , labels=to_plot.pftdict
                  )
+
+
+
+      if inputtypes.ORCHIDEE_plt == plot_type:
+
+          data_dominantPFT2 = np.argmax((np.ma.mean(to_plot.extradata[1],axis=0)*np.mean(to_plot.extradata[4],axis=0)),axis=0)
+          data_dominantPFT2 = np.ma.masked_less(np.ma.where(to_plot.lndmsk>0,data_dominantPFT2,-1),0)[::-1,:].T
+          # data_dominantPFT2 = np.ma.masked_less(data_dominantPFT2,1)[::-1,:].T
+
+          
+          map_dataintPFT(data_dominantPFT2,to_plot.lons,to_plot.lats,to_plot.path
+                     ,"PFT name", colorlist=[pft_color_dict[pft] for pft in to_plot.pftdict]
+                     , labels=to_plot.pftdict
+                     )
+
+          maxvegetfrac_mean = np.mean(to_plot.extradata[4],axis=0)
+          sumHERB = maxvegetfrac_mean[9,...] + maxvegetfrac_mean[10,...]
+          sumBRDL = maxvegetfrac_mean[4,...] + maxvegetfrac_mean[5,...] + maxvegetfrac_mean[7,...]
+          sumNDLL = maxvegetfrac_mean[3,...] + maxvegetfrac_mean[6,...] + maxvegetfrac_mean[8,...]
+
+      if inputtypes.SEIB_plt == plot_type:
+          maxvegetfrac_mean = to_plot.geodata
+          maxvegetfrac_sum = np.ma.sum(to_plot.geodata,axis=-1)
+          sumHERB = (maxvegetfrac_mean[...,6] + maxvegetfrac_mean[...,7])/maxvegetfrac_sum
+          sumBRDL = (maxvegetfrac_mean[...,1] + maxvegetfrac_mean[...,2] + maxvegetfrac_mean[...,5])/maxvegetfrac_sum
+          sumNDLL = (maxvegetfrac_mean[...,0] + maxvegetfrac_mean[...,3] + maxvegetfrac_mean[...,4])/maxvegetfrac_sum
+
+      if inputtypes.ORCHIDEE_plt == plot_type or inputtypes.SEIB_plt == plot_type:
+          from mpl_toolkits.axes_grid1.axes_rgb import RGBAxes
+          fig = plt.figure()
+          ax = RGBAxes(fig, [0.1, 0.1, 0.8, 0.8])
+          if inputtypes.SEIB_plt == plot_type:
+              ax.imshow_rgb(sumHERB.T[::-1,:],sumBRDL.T[::-1,:],sumNDLL.T[::-1,:],interpolation='none')
+          if inputtypes.ORCHIDEE_plt == plot_type:
+              ax.imshow_rgb(sumHERB,sumBRDL,sumNDLL,interpolation='none')
+          plt.show()
 
       # Plotting the NB_of dominant PFT
       data_not_masked = np.ma.count(np.ma.masked_less_equal(to_plot.geodata,limit_npp_value),axis=-1)
