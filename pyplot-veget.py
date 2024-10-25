@@ -155,8 +155,8 @@ PFT_list_choices = {
         }
 
 
-extradata_SEIB_list = ["lai_max","precipitation","gdd0","gdd5"]
-extradata_ORCHIDEE_list = ["LAI","NPP","gdd0","gdd5","maxvegetfrac"]
+extradata_SEIB_list = ["lai_max","precipitation","gdd0","gdd5","pool_snow"]
+extradata_ORCHIDEE_list = ["LAI","NPP","gdd0","gdd5","maxvegetfrac", "snow"]
 
 # Utilities functions ...
 # =======================
@@ -599,7 +599,7 @@ def get_PFT_weights(data01,data02):
 
 #enddef get_PFT_weights
 
-def load_extradata_ORCHIDEE(geodata_object,pathtodataset,pathtogdd0=None,pathtogdd5=None,mean_t_value=None):
+def load_extradata_ORCHIDEE(geodata_object,pathtodataset,pathtogdd0=None,pathtogdd5=None,pathtosnow=None,mean_t_value=None):
 
 
     for variabel in extradata_ORCHIDEE_list:
@@ -622,6 +622,15 @@ def load_extradata_ORCHIDEE(geodata_object,pathtodataset,pathtogdd0=None,pathtog
              potential_files=glob.glob(dircontain_data+"/*"+variabel+".*nc")
              dst = n4.Dataset(potential_files[0])
          #endif    
+      elif variabel == "snow" :
+         if ( pathtosnow != None ):
+             dst = n4.Dataset(pathtosnow)
+         else:
+             # Get the directory where presumably the data
+             dircontain_data=os.path.dirname(pathtodataset)
+             potential_files=glob.glob(dircontain_data+"/*"+variabel+".*nc")
+             dst = n4.Dataset(potential_files[0])
+
       else: 
          dst = n4.Dataset(pathtodataset)
       #endif
@@ -1011,7 +1020,8 @@ if __name__ == '__main__':
     biome_computed = compute_biome(lai_max_OR.T[:,::-1],to_plot.dominantIndx,to_plot.extradata[2].T, to_plot.extradata[3].T,to_plot.pftdict) #-3 because ORCHIDEE dominants pft begin at 0
     map_dataint(biome_computed,to_plot.lons,to_plot.lats, to_plot.path, "Biome Names", colorlist=[biomes_color_dict[biomes] for biomes in to_plot.biomedict], labels=to_plot.biomedict)
     map_dataflt(lai_max_OR.T[:,::-1],to_plot.lons,to_plot.lats,"Ad Hoc plotting","lai", cmap="BrBG", masklmt=-5.0)
-#    map_dataflt(to_plot.extradata[2].T,to_plot.lons,to_plot.lats,"Ad Hoc plotting","gdd0", cmap="BrBG", masklmt=-5.0)
+    #to_plot.extradata[5] = np.ma.masked_greater(to_plot.extradata[5],7000.0)
+    map_dataflt(to_plot.extradata[5],to_plot.lons,to_plot.lats,"Ad Hoc plotting","pool snow [mm]", cmap="BrBG", masklmt=-5.0)
 #    map_dataflt(to_plot.extradata[3].T,to_plot.lons,to_plot.lats,"Ad Hoc plotting","gdd5", cmap="BrBG", masklmt=-5.0)
 
   if inputtypes.SEIB_plt == plot_type :
@@ -1019,7 +1029,7 @@ if __name__ == '__main__':
     minlaimaxSEIB = np.ma.min(to_plot.extradata[0])
     maxlaimaxSEIB = np.ma.max(to_plot.extradata[0])
     map_dataflt(to_plot.extradata[0]/maxlaimaxSEIB,to_plot.lons,to_plot.lats,""+str(minlaimaxSEIB)+" | " +str(maxlaimaxSEIB),"lai/laimax", cmap="BrBG_r", masklmt=-5.0)
-
+    
     # For the histogram in LAI values something be like ...
     data_flat_SEIB = np.ma.ravel(to_plot.extradata[0])
     plot_histo(data_flat_SEIB)
@@ -1028,7 +1038,7 @@ if __name__ == '__main__':
     map_dataint(biome_computed,to_plot.lons,to_plot.lats, to_plot.path, "Biome Names", colorlist=[biomes_color_dict[biomes] for biomes in to_plot.biomedict], labels=to_plot.biomedict)
     map_dataflt(to_plot.extradata[2].T,to_plot.lons,to_plot.lats,"Ad Hoc plotting","gdd0", cmap="BrBG", masklmt=-5.0)
     map_dataflt(to_plot.extradata[3].T,to_plot.lons,to_plot.lats,"Ad Hoc plotting","gdd5", cmap="BrBG", masklmt=-5.0)
-
+    map_dataflt(to_plot.extradata[4],to_plot.lons,to_plot.lats,"Ad Hoc plotting","pool snow [mm]", cmap="BrBG", masklmt=-5.0)
 
 
 
